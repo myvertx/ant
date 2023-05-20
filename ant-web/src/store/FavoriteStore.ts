@@ -8,17 +8,12 @@ export const useFavoriteStore = defineStore('favoriteStore', {
             {
                 name: '根目录',
                 path: '/',
-            }
+            },
         ],
     }),
     getters: {
         /** 当前收藏的路径 */
         curPath: (state) => state.selectedKeys[0],
-    },
-    actions: {
-        setSelectedKeys(favoritePath: string) {
-            this.selectedKeys = [favoritePath];
-        },
     },
     persist: true,
 });

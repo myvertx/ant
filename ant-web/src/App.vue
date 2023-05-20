@@ -3,7 +3,9 @@
         <h1 class="title">MyVertx Ant</h1>
     </div>
     <div class="center">
-        <Favorite />
+        <div class="favorite">
+            <Favorite />
+        </div>
         <Explorer />
         <Info />
     </div>
@@ -23,5 +25,8 @@
 .center {
     flex-grow: 1;
     display: flex;
+    .favorite {
+        width: 100px;
+    }
 }
 </style>
