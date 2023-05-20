@@ -36,11 +36,3 @@ export const iconFontUrl = import.meta.env.VITE_ICON_FONT_URL;
 export const xHttpMethodOverride: boolean = import.meta.env.VITE_X_HTTP_METHOD_OVERRIDE
     ? JSON.parse(import.meta.env.VITE_X_HTTP_METHOD_OVERRIDE)
     : false;
-
-/** 供应者ID列表 */
-export const providers: any[] = [];
-const providerList: string[] = import.meta.env.VITE_PROVIDERS.split(',') as string[];
-for (const item of providerList) {
-    const [key, name] = item.split(':') as string[];
-    providers.push({ key, name });
-}
