@@ -2,5 +2,6 @@ main:
   root: /root
 web:
   config:
+    isCors: true
     server:
       port: 8091

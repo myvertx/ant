@@ -87,7 +87,7 @@ export enum PromptMsg {
 }
 
 // 发出请求
-function request(config: AxiosRequestConfig, promptMsg = PromptMsg.PromptMsg): Promise<Ro> {
+function request(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError): Promise<Ro> {
     if (config.method?.toUpperCase() === 'GET' && config.data) {
         throw new Error('Axios的GET请求不能使用body传参，请将参数放入params属性而不是data');
     }
@@ -99,23 +99,22 @@ function request(config: AxiosRequestConfig, promptMsg = PromptMsg.PromptMsg): P
 
             const data = resp.data;
 
-            if (promptMsg === PromptMsg.PromptMsg || promptMsg === PromptMsg.OnlyPromptError) {
-                if (data.result) {
-                    const ro = data as Ro;
-                    if (ro.msg) {
-                        switch (config.method) {
-                            case 'GET':
-                                if (promptMsg === PromptMsg.PromptMsg) message.info(ro.msg);
-                                break;
-                            case 'POST':
-                            case 'PUT':
-                            case 'DELETE':
-                                if (ro.result > 0)
-                                    if (promptMsg === PromptMsg.PromptMsg) message.success(ro.msg);
-                                    else message.warning(ro.msg, 5);
-                                break;
-                        }
+            if (data.result) {
+                const ro = data as Ro;
+                if (ro.msg) {
+                    // 成功
+                    if (ro.result > 0) {
+                        if (promptMsg === PromptMsg.PromptMsg) message.success(ro.msg);
                     }
+                    // 警告
+                    else if (ro.result !== -2) {
+                        if (promptMsg !== PromptMsg.None) message.warning(ro.msg, 5);
+                    }
+                    // 失败
+                    else {
+                        if (promptMsg !== PromptMsg.None) message.error(ro.msg, 5);
+                    }
+                    return ro;
                 }
             }
 

@@ -1,9 +1,8 @@
 /// <reference types="vite/client"
 
 import { Ro } from '@/ro/Ro';
-import { UpRo } from '@/ro/UpRo';
 
-declare type RequestFunction = (config: AxiosRequestConfig, promptMsg?: PromptMsg) => Promise<Ro | UpRo>;
+declare type RequestFunction = (config: AxiosRequestConfig, promptMsg?: PromptMsg) => Promise<Ro>;
 
 declare interface Request {
     get: RequestFunction;
