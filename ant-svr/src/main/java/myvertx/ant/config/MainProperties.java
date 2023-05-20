@@ -1,15 +1,12 @@
-package myvertx.gatex.config;
-
-import java.util.List;
+package myvertx.ant.config;
 
 import lombok.Data;
-import myvertx.gatex.api.GatexRoute;
 
 @Data
 public class MainProperties {
     /**
-     * 路由列表
+     * 根目录路径
      */
-    private List<GatexRoute> routes;
+    private String root;
 
 }

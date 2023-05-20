@@ -1,15 +1,13 @@
-package myvertx.gatex.verticle;
+package myvertx.ant.verticle;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.vertx.core.Verticle;
 import lombok.extern.slf4j.Slf4j;
-import myvertx.gatex.inject.MainModule;
+import myvertx.ant.inject.MainModule;
 import rebue.wheel.vertx.verticle.AbstractMainVerticle;
 
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 @Slf4j
 public class MainVerticle extends AbstractMainVerticle {

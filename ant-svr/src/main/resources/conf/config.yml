@@ -1,0 +1,6 @@
+main:
+  root: /root
+web:
+  config:
+    server:
+      port: 8091
