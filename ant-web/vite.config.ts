@@ -24,9 +24,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
             },
         },
         plugins: [
-            vue({
-                reactivityTransform: true, // 启用ref响应性语法糖 https://cn.vuejs.org/guide/extras/reactivity-transform.html
-            }),
+            vue({}),
             // 自动加载组件
             Components({
                 // 查找自定义组件的位置

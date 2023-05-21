@@ -24,7 +24,11 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["src/*"]
-        }
+        },
+        "types": [
+            /* 支持Reactivity Transform */
+            "@vue-macros/reactivity-transform/macros-global"
+        ]
     },
     "include": [
         "src/**/*.ts",
