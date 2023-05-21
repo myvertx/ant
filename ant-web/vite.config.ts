@@ -5,6 +5,7 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
 import { themePreprocessorPlugin } from '@zougt/vite-plugin-theme-preprocessor';
 import path from 'path';
 import AutoImport from 'unplugin-auto-import/vite';
+import ReactivityTransform from '@vue-macros/reactivity-transform/vite';
 
 // https://vitejs.dev/config/
 // mode:
@@ -25,6 +26,9 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
         },
         plugins: [
             vue({}),
+            // Reactivity Transform
+            // https://vue-macros.sxzz.moe/zh-CN/features/reactivity-transform.html
+            ReactivityTransform(),
             // 自动加载组件
             Components({
                 // 查找自定义组件的位置

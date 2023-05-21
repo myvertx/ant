@@ -7,13 +7,10 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    ADivider: typeof import('ant-design-vue/es')['Divider']
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
-    APageHeader: typeof import('ant-design-vue/es')['PageHeader']
-    ASubMenu: typeof import('ant-design-vue/es')['SubMenu']
     Column: typeof import('./src/view/explorer/Column.vue')['default']
-    Explorer: typeof import('./src/view/explorer/Explorer.vue')['default']
+    Explorer: typeof import('./src/view/Explorer.vue')['default']
     Favorite: typeof import('./src/view/Favorite.vue')['default']
     Info: typeof import('./src/view/Info.vue')['default']
   }

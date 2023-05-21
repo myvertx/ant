@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
-import { useFavoriteStore } from '@/store/FavoriteStore';
 import { usePathStore } from '@/store/PathStore';
 
 /** 当前组件实例 */
@@ -13,8 +12,7 @@ const request = globalProperties?.$request;
 
 // ****** 中央状态 ******
 // 收藏
-let { selectedKeys, list: favorites } = $(useFavoriteStore());
-let { setPath } = $(usePathStore());
+let { selected, columns, setPath } = $(usePathStore());
 
 /** 收藏菜单点击事件 */
 function onSelect(e: { key: string }) {
@@ -35,8 +33,7 @@ function onSelect(e: { key: string }) {
 </script>
 
 <template>
-    <a-menu v-model:selectedKeys="selectedKeys" @select="onSelect">
-        <a-menu-item v-for="favorite in favorites" :key="favorite.path">{{ favorite.name }}</a-menu-item>
+    <a-menu v-for="column in columns" @select="onSelect" v-bind:style="{ width: column.width }">
+        <a-menu-item v-for="file in column.files" :key="file.path">{{ file.name }}</a-menu-item>
     </a-menu>
 </template>
-

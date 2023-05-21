@@ -26,6 +26,8 @@
             "@/*": ["src/*"]
         },
         "types": [
+            /* 支持NodeJS命名空间 */
+            "node",
             /* 支持Reactivity Transform */
             "@vue-macros/reactivity-transform/macros-global"
         ]
