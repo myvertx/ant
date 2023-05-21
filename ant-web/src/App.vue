@@ -8,9 +8,12 @@ import 'splitpanes/dist/splitpanes.css';
         <h1 class="title">MyVertx Ant</h1>
     </div>
     <div class="center">
+        <!-- 分割面板 https://antoniandre.github.io/splitpanes/ -->
         <splitpanes>
             <pane size="10" min-size="10" max-size="50">
-                <Favorite />
+                <div class="favorite">
+                    <Favorite />
+                </div>
             </pane>
             <pane min-size="10">
                 <Explorer />
@@ -32,5 +35,9 @@ import 'splitpanes/dist/splitpanes.css';
 }
 .center {
     flex-grow: 1;
+    .favorite {
+        background-color: #222;
+        height: 100%;
+    }
 }
 </style>

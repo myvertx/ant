@@ -13,7 +13,7 @@ const request = globalProperties?.$request;
 
 // ****** 中央状态 ******
 // 收藏
-let { selectedKeys, list: favorites } = $(useFavoriteStore());
+let { selected: selectedFavorite, selectListData } = $(useFavoriteStore());
 let { setPath } = $(usePathStore());
 
 /** 收藏菜单点击事件 */
@@ -28,6 +28,7 @@ function onSelect(e: { key: string }) {
         // 处理返回的结果
         .then((ro: Ro) => {
             if (ro.result > 0) {
+                selectedFavorite = path;
                 setPath(path, ro.extra as FileMo[]);
             }
         });
@@ -35,8 +36,5 @@ function onSelect(e: { key: string }) {
 </script>
 
 <template>
-    <a-menu v-model:selectedKeys="selectedKeys" @select="onSelect">
-        <a-menu-item v-for="favorite in favorites" :key="favorite.path">{{ favorite.name }}</a-menu-item>
-    </a-menu>
+    <SelectList :selectedKey="selectedFavorite" :data="selectListData" @select="onSelect" />
 </template>
-

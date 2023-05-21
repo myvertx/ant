@@ -3,7 +3,7 @@
 // 第一个参数是你的应用中 Store 的唯一 ID。
 export const useFavoriteStore = defineStore('favoriteStore', {
     state: (): State => ({
-        selectedKeys: ['/'],
+        selected: '/',
         list: [
             {
                 name: '根目录',
@@ -13,7 +13,14 @@ export const useFavoriteStore = defineStore('favoriteStore', {
     }),
     getters: {
         /** 当前收藏的路径 */
-        curPath: (state) => state.selectedKeys[0],
+        curPath: (state) => state.selected,
+        selectListData: (state) => {
+            const selectListData = [];
+            for (const favorite of state.list) {
+                selectListData.push({ key: favorite.path, name: favorite.name });
+            }
+            return selectListData;
+        },
     },
     persist: true,
 });
@@ -27,7 +34,7 @@ interface Favorite {
 
 interface State {
     /** 当前选择的收藏(路径) */
-    selectedKeys: string[];
+    selected: string;
     /** 收藏列表 */
     list: Favorite[];
 }

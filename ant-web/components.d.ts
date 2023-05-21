@@ -13,5 +13,6 @@ declare module '@vue/runtime-core' {
     Explorer: typeof import('./src/view/Explorer.vue')['default']
     Favorite: typeof import('./src/view/Favorite.vue')['default']
     Info: typeof import('./src/view/Info.vue')['default']
+    SelectList: typeof import('./src/component/SelectList.vue')['default']
   }
 }
