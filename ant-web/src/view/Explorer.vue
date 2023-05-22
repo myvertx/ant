@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { usePathStore } from '@/store/PathStore';
@@ -38,23 +37,6 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
 </script>
 
 <template>
-    <!-- <a-menu v-for="column in columns" @select="onSelect" v-bind:style="{ width: column.width }">
-        <a-menu-item v-for="file in column.files" :key="file.path">{{ file.name }}</a-menu-item>
-    </a-menu> -->
-    <!-- 分割面板 https://antoniandre.github.io/splitpanes/ -->
-    <!-- <Splitpanes ref="splitpanesRef" @resized="onSplitpanesResized"> -->
-    <!-- <Splitpanes ref="splitpanesRef">
-        <Pane v-for="column in columns" :size="column.width" min-size="10">
-            <div class="column">
-                <SelectList
-                    :componentKey="column.path"
-                    :selectedItemKey="column.selectedFile"
-                    :data="column.files"
-                    @select="onSelect"
-                />
-            </div>
-        </Pane>
-    </Splitpanes> -->
     <template v-for="column in columns">
         <div :style="{ flexBasis: column.width ? column.width : '200px' }">
             <SelectList
