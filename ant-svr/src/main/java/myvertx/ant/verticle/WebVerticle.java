@@ -41,7 +41,8 @@ public class WebVerticle extends AbstractWebVerticle {
                         return;
                     }
                     String pathParam   = pathParams.get(0);
-                    Path   dirFullPath = Paths.get(FileUtils.getClassesPath(), mainProperties.getRoot(), pathParam);
+                    Path   rootPath    = Paths.get(FileUtils.getClassesPath(), mainProperties.getRoot());
+                    Path   dirFullPath = Paths.get(rootPath.toString(), pathParam);
                     log.debug("指定目录的全路径为: {}", dirFullPath);
 
                     try (Stream<Path> stream = Files.list(dirFullPath)) {
@@ -49,7 +50,7 @@ public class WebVerticle extends AbstractWebVerticle {
                                 .map(path -> PathRa.builder()
                                         .isDir(Files.isDirectory(path))
                                         .name(path.getFileName().toString())
-                                        .path(path.toString())
+                                        .path(path.toString().replaceFirst("^" + rootPath, ""))
                                         .build()
                                 )
                                 .collect(Collectors.toList());

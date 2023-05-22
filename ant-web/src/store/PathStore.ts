@@ -24,6 +24,18 @@ export const usePathStore = defineStore('pathStore', {
                 path,
                 files,
             });
+        },
+        addPath(path: string, fileMos: FileRa[]) {
+            this.selected = path;
+            const files: File[] = [];
+            for (const fileMo of fileMos) {
+                files.push({ ...fileMo, key: fileMo.path });
+            }
+            // this.columns = [];
+            this.columns.push({
+                path,
+                files,
+            });
             console.log('columns', this.columns);
         },
         selectColumnFile(columnPath: string, filePath: string) {
