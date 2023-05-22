@@ -1,4 +1,4 @@
-export interface FileMo {
+export interface FileRa {
     /**
      * 是否目录
      */

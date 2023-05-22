@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileMo } from '@/mo/FileMo';
+import { FileRa } from '@/mo/FileRa';
 import { Ro } from '@/ro/Ro';
 import { useFavoriteStore } from '@/store/FavoriteStore';
 import { usePathStore } from '@/store/PathStore';
@@ -17,8 +17,8 @@ let { selected: selectedFavorite, selectListData } = $(useFavoriteStore());
 let { setPath } = $(usePathStore());
 
 /** 收藏菜单点击事件 */
-function onSelect(e: { key: string }) {
-    const path = e.key;
+function onSelect(item: { key: string }) {
+    const path = item.key;
     // 发出get请求
     request
         ?.get({
@@ -29,12 +29,12 @@ function onSelect(e: { key: string }) {
         .then((ro: Ro) => {
             if (ro.result > 0) {
                 selectedFavorite = path;
-                setPath(path, ro.extra as FileMo[]);
+                setPath(path, ro.extra as FileRa[]);
             }
         });
 }
 </script>
 
 <template>
-    <SelectList :selectedKey="selectedFavorite" :data="selectListData" @select="onSelect" />
+    <SelectList :selectedItemKey="selectedFavorite" :data="selectListData" @select="onSelect" />
 </template>
