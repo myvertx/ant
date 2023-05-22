@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RightOutlined } from '@ant-design/icons-vue';
+import { FolderFilled, FolderOpenFilled, FileFilled, RightOutlined } from '@ant-design/icons-vue';
 
 interface SelectListItem {
     isDir: boolean;
@@ -21,6 +21,11 @@ function onClick(item: SelectListItem) {
 <template>
     <div class="item-wrap" v-for="item in data" :key="item.key" @click="onClick(item)">
         <div class="item" v-bind:class="{ selected: item.key === selectedItemKey }">
+            <div class="icon" v-if="item.isDir !== undefined">
+                <folder-filled v-if="item.isDir && item.key !== selectedItemKey" />
+                <folder-open-filled v-if="item.isDir && item.key === selectedItemKey" />
+                <file-filled v-if="!item.isDir" />
+            </div>
             <div class="item-name">{{ item.name }}</div>
             <right-outlined v-if="item.isDir" />
         </div>
@@ -28,6 +33,7 @@ function onClick(item: SelectListItem) {
 </template>
 
 <style lang="less" scoped>
+@item-height: 24px;
 .item-wrap {
     padding: 5px;
     .item {
@@ -35,9 +41,16 @@ function onClick(item: SelectListItem) {
         cursor: pointer;
         padding: 3px 15px;
         display: flex;
-        // justify-content: space-around;
+        .icon {
+            height: @item-height;
+            line-height: @item-height;
+            padding: 0 5px;
+            font-size: 16px;
+        }
         .item-name {
             flex-grow: 1;
+            height: @item-height;
+            line-height: @item-height;
         }
     }
     .item:hover {

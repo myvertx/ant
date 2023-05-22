@@ -14,5 +14,6 @@ declare module '@vue/runtime-core' {
     Favorite: typeof import('./src/view/Favorite.vue')['default']
     Info: typeof import('./src/view/Info.vue')['default']
     SelectList: typeof import('./src/component/SelectList.vue')['default']
+    Splitter: typeof import('./src/component/Splitter.vue')['default']
   }
 }

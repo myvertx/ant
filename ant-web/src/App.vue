@@ -45,7 +45,7 @@ onMounted(() => {
     </div>
     <div class="center">
         <!-- 分割面板 https://antoniandre.github.io/splitpanes/ -->
-        <Splitpanes ref="splitpanesRef" @resized="onSplitpanesResized">
+        <!-- <Splitpanes ref="splitpanesRef" @resized="onSplitpanesResized">
             <Pane :size="leftPaneSize" min-size="10" max-size="50">
                 <div class="favorite">
                     <Favorite />
@@ -54,7 +54,12 @@ onMounted(() => {
             <Pane>
                 <Explorer />
             </Pane>
-        </Splitpanes>
+        </Splitpanes> -->
+        <div class="favorite">
+            <Favorite />
+        </div>
+        <Splitter />
+        <Explorer />
     </div>
 </template>
 
@@ -71,8 +76,10 @@ onMounted(() => {
 }
 .center {
     flex-grow: 1;
+    display: flex;
     .favorite {
         background-color: #222;
+        width: 100px;
         height: 100%;
     }
 }
