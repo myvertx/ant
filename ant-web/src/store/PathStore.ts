@@ -23,7 +23,6 @@ export const usePathStore = defineStore('pathStore', {
             this.columns.push({
                 path,
                 files,
-                width: 30,
             });
             console.log('columns', this.columns);
         },
@@ -47,7 +46,8 @@ interface Column {
     path: string;
     /** 文件或目录列表 */
     files: File[];
-    width?: number;
+    /** 列宽度 */
+    width?: string;
 }
 
 interface File extends FileRa {

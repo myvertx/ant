@@ -1,42 +1,42 @@
 <script setup lang="ts">
-import { Splitpanes, Pane } from 'splitpanes';
-import 'splitpanes/dist/splitpanes.css';
+// import { Splitpanes, Pane } from 'splitpanes';
+// import 'splitpanes/dist/splitpanes.css';
 import { useFavoriteStore } from '@/store/FavoriteStore';
 
 // ****** 局部状态 ******
-let leftPaneSize = $ref(10);
-const splitpanesRef = ref();
+// let leftPaneSize = $ref(10);
+// const splitpanesRef = ref();
 
 // ****** 中央状态 ******
 // 收藏
-let { width: leftPaneWidth } = $(useFavoriteStore());
+let { width: favoriteWidth } = $(useFavoriteStore());
 
-/**
- * 通过width计算出size
- * width以px为单位，而size则表示占宽比
- */
-function widthToSize(width: number) {
-    const clientWidth = splitpanesRef.value.$el.clientWidth;
-    return (width / clientWidth) * 100;
-}
-/**
- * 通过width计算出size
- * width以px为单位，而size则表示占宽比
- */
-function sizeToWidth(size: number) {
-    const clientWidth = splitpanesRef.value.$el.clientWidth;
-    return (clientWidth * size) / 100;
-}
-/**
- * 分割面板改变面板大小的事件
- */
-function onSplitpanesResized(panes: { size: number }[]) {
-    leftPaneWidth = sizeToWidth(panes[0].size);
-}
-/** 装载事件 */
-onMounted(() => {
-    leftPaneSize = widthToSize(leftPaneWidth);
-});
+// /**
+//  * 通过width计算出size
+//  * width以px为单位，而size则表示占宽比
+//  */
+// function widthToSize(width: number) {
+//     const clientWidth = splitpanesRef.value.$el.clientWidth;
+//     return (width / clientWidth) * 100;
+// }
+// /**
+//  * 通过width计算出size
+//  * width以px为单位，而size则表示占宽比
+//  */
+// function sizeToWidth(size: number) {
+//     const clientWidth = splitpanesRef.value.$el.clientWidth;
+//     return (clientWidth * size) / 100;
+// }
+// /**
+//  * 分割面板改变面板大小的事件
+//  */
+// function onSplitpanesResized(panes: { size: number }[]) {
+//     favoriteWidth = sizeToWidth(panes[0].size);
+// }
+// /** 装载事件 */
+// onMounted(() => {
+//     leftPaneSize = widthToSize(favoriteWidth);
+// });
 </script>
 
 <template>
@@ -55,11 +55,13 @@ onMounted(() => {
                 <Explorer />
             </Pane>
         </Splitpanes> -->
-        <div class="favorite">
+        <div class="favorite" :style="{ flexBasis: favoriteWidth }">
             <Favorite />
         </div>
-        <Splitter />
-        <Explorer />
+        <Splitter @resized="(size:string) => (favoriteWidth = size)" />
+        <div class="explorer">
+            <Explorer />
+        </div>
     </div>
 </template>
 
@@ -77,10 +79,14 @@ onMounted(() => {
 .center {
     flex-grow: 1;
     display: flex;
+    justify-content: flex-start;
     .favorite {
         background-color: #222;
-        width: 100px;
-        height: 100%;
+    }
+    .explorer {
+        background-color: #111;
+        flex-grow: 1;
+        display: flex;
     }
 }
 </style>

@@ -43,7 +43,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
     </a-menu> -->
     <!-- 分割面板 https://antoniandre.github.io/splitpanes/ -->
     <!-- <Splitpanes ref="splitpanesRef" @resized="onSplitpanesResized"> -->
-    <Splitpanes ref="splitpanesRef">
+    <!-- <Splitpanes ref="splitpanesRef">
         <Pane v-for="column in columns" :size="column.width" min-size="10">
             <div class="column">
                 <SelectList
@@ -54,12 +54,16 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
                 />
             </div>
         </Pane>
-    </Splitpanes>
+    </Splitpanes> -->
+    <template v-for="column in columns">
+        <div :style="{ flexBasis: column.width ? column.width : '200px' }">
+            <SelectList
+                :componentKey="column.path"
+                :selectedItemKey="column.selectedFile"
+                :data="column.files"
+                @select="onSelect"
+            />
+        </div>
+        <Splitter />
+    </template>
 </template>
-
-<style lang="less" scoped>
-.column {
-    background-color: #111;
-    height: 100%;
-}
-</style>

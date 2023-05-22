@@ -3,7 +3,7 @@
 // 第一个参数是你的应用中 Store 的唯一 ID。
 export const useFavoriteStore = defineStore('favoriteStore', {
     state: (): State => ({
-        width: 100,
+        width: '100px',
         selected: '/',
         list: [
             {
@@ -35,7 +35,7 @@ interface Favorite {
 
 interface State {
     /** 面板的宽度 */
-    width: number;
+    width: string;
     /** 当前选择的收藏(路径) */
     selected: string;
     /** 收藏列表 */
