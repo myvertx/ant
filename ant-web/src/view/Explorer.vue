@@ -38,27 +38,24 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
 </script>
 
 <template>
-    <div class="explorer">
-        <template v-for="column in columns">
-            <div class="column" :style="{ width: column.width ? column.width : '200px' }">
-                <SelectList
-                    :componentKey="column.path"
-                    :selectedItemKey="column.selectedFile"
-                    :data="column.files"
-                    @select="onSelect"
-                />
-            </div>
-            <Splitter />
-        </template>
-    </div>
+    <template v-for="column in columns">
+        <div class="column" :style="{ flexBasis: column.width ? column.width : '200px' }">
+            <SelectList
+                :componentKey="column.path"
+                :selectedItemKey="column.selectedFile"
+                :data="column.files"
+                @select="onSelect"
+            />
+        </div>
+        <Splitter />
+    </template>
 </template>
 
 <style lang="less" scoped>
-.explorer {
-    height: 100%;
-    display: inline-block;
-    .column {
-        display: inline-block;
-    }
+.column {
+    /** 不缩小 */
+    flex-shrink: 0;
+    /** 不换行 */
+    white-space: nowrap;
 }
 </style>

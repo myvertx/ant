@@ -12,7 +12,7 @@ let { width: favoriteWidth } = $(useFavoriteStore());
         <h1 class="title">MyVertx Ant</h1>
     </div>
     <div class="center">
-        <div class="left" :style="{ width: favoriteWidth }">
+        <div class="left" :style="{ flexBasis: favoriteWidth }">
             <Favorite />
         </div>
         <Splitter @resized="(size:string) => (favoriteWidth = size)" />
@@ -44,6 +44,7 @@ let { width: favoriteWidth } = $(useFavoriteStore());
         background-color: #111;
         flex-grow: 1;
         overflow-x: auto;
+        display: flex;
     }
 }
 </style>

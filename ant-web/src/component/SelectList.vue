@@ -21,13 +21,15 @@ function onClick(item: SelectListItem) {
 <template>
     <div class="item-wrap" v-for="item in data" :key="item.key" @click="onClick(item)">
         <div class="item" v-bind:class="{ selected: item.key === selectedItemKey }">
-            <div class="icon" v-if="item.isDir !== undefined">
+            <div class="icon-left" v-if="item.isDir !== undefined">
                 <folder-filled v-if="item.isDir && item.key !== selectedItemKey" />
                 <folder-open-filled v-if="item.isDir && item.key === selectedItemKey" />
                 <file-filled v-if="!item.isDir" />
             </div>
             <div class="item-name">{{ item.name }}</div>
-            <right-outlined v-if="item.isDir" />
+            <div class="icon-right" v-if="item.isDir">
+                <right-outlined />
+            </div>
         </div>
     </div>
 </template>
@@ -35,22 +37,29 @@ function onClick(item: SelectListItem) {
 <style lang="less" scoped>
 @item-height: 24px;
 .item-wrap {
-    padding: 5px;
+    padding: 5px 10px;
     .item {
         border-radius: 5px;
         cursor: pointer;
-        padding: 3px 15px;
+        padding: 3px 5px;
         display: flex;
-        .icon {
+        .icon-left {
             height: @item-height;
             line-height: @item-height;
-            padding: 0 5px;
+            // padding-right: 5px;
             font-size: 16px;
         }
         .item-name {
             flex-grow: 1;
             height: @item-height;
             line-height: @item-height;
+            padding: 0 5px;
+        }
+        .icon-left {
+            height: @item-height;
+            line-height: @item-height;
+            // padding: 0 0 0 15px;
+            // font-size: 16px;
         }
     }
     .item:hover {

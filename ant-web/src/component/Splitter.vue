@@ -14,7 +14,7 @@ function startResize(mde: MouseEvent) {
 
     function handleMouseMove(mme: MouseEvent) {
         let size = (direction === 'vertical' ? mme.clientX - previousRect.left : mme.clientY - previousRect.top) + 'px';
-        previousElementSibling.style.width = size;
+        previousElementSibling.style.flexBasis = size;
         emit('resized', size);
     }
 
@@ -38,9 +38,10 @@ function startResize(mde: MouseEvent) {
 
 <style lang="less" scoped>
 .splitter {
-    display: inline-block;
-    height: 100%;
-    vertical-align: top;
+    /** 不缩小 */
+    flex-shrink: 0;
+    /** 不换行 */
+    white-space: nowrap;
     background-color: black;
     position: relative;
     &::before {
