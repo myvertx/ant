@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UploadOutlined } from '@ant-design/icons-vue';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { usePathStore } from '@/store/PathStore';
@@ -44,14 +45,31 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
 
 <template>
     <template v-for="column in columns">
-        <div class="column" :style="{ flexBasis: getColumnWidth(column.path) || '200px' }">
-            <SelectList
-                :componentKey="column.path"
-                :selectedItemKey="column.selectedFile"
-                :data="column.files"
-                @select="onSelect"
-            />
-        </div>
+        <a-dropdown :trigger="['contextmenu']">
+            <div class="column" :style="{ flexBasis: getColumnWidth(column.path) || '200px' }">
+                <SelectList
+                    :componentKey="column.path"
+                    :selectedItemKey="column.selectedFile"
+                    :data="column.files"
+                    @select="onSelect"
+                />
+            </div>
+            <template #overlay>
+                <a-menu>
+                    <a-menu-item>
+                        <a-upload
+                            v-model:file-list="fileList"
+                            name="file"
+                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            :showUploadList="false"
+                            @change="handleChange"
+                        >
+                            <upload-outlined />&nbsp;&nbsp;上传文件
+                        </a-upload>
+                    </a-menu-item>
+                </a-menu>
+            </template>
+        </a-dropdown>
         <Splitter @resized="(size:string) => setColumnWidth(column.path, size)" />
     </template>
 </template>

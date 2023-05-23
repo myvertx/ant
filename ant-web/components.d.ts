@@ -7,8 +7,13 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    AButton: typeof import('ant-design-vue/es')['Button']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
+    ADropdown: typeof import('ant-design-vue/es')['Dropdown']
+    AMenu: typeof import('ant-design-vue/es')['Menu']
+    AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
     ASwitch: typeof import('ant-design-vue/es')['Switch']
+    AUpload: typeof import('ant-design-vue/es')['Upload']
     Explorer: typeof import('./src/view/Explorer.vue')['default']
     Favorite: typeof import('./src/view/Favorite.vue')['default']
     Info: typeof import('./src/view/Info.vue')['default']
