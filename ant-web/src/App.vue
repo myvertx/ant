@@ -44,6 +44,7 @@ onMounted(() => {
 .header {
     display: flex;
     height: 60px;
+    background-color: @background-color-heaviest;
     .title {
         height: @header-height;
         line-height: @header-height;
@@ -62,10 +63,10 @@ onMounted(() => {
     display: flex;
     justify-content: flex-start;
     .left {
-        background-color: @background-color-heavy;
+        background-color: @background-color-heavier;
     }
     .client {
-        background-color: #111;
+        background-color: @background-color-base;
         flex-grow: 1;
         overflow-x: auto;
         display: flex;

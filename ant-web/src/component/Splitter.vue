@@ -42,7 +42,7 @@ function startResize(mde: MouseEvent) {
     flex-shrink: 0;
     /** 不换行 */
     white-space: nowrap;
-    background-color: black;
+    background-color: @background-color-light;
     position: relative;
     &::before {
         content: '';

@@ -46,7 +46,6 @@ function onClick(item: SelectListItem) {
         .icon-left {
             height: @item-height;
             line-height: @item-height;
-            // padding-right: 5px;
             font-size: 16px;
         }
         .item-name {
@@ -55,18 +54,16 @@ function onClick(item: SelectListItem) {
             line-height: @item-height;
             padding: 0 5px;
         }
-        .icon-left {
+        .icon-right {
             height: @item-height;
             line-height: @item-height;
-            // padding: 0 0 0 15px;
-            // font-size: 16px;
         }
     }
     .item:hover {
-        color: #fff;
+        color: @item-hover-color;
     }
     .selected {
-        background-color: #666;
+        background-color: @item-active-bg-color;
     }
 }
 </style>
