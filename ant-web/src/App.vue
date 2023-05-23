@@ -6,7 +6,12 @@ import { useThemeStore } from '@/store/ThemeStore';
 // ****** 中央状态 ******
 // 收藏
 let { width: favoriteWidth } = $(useFavoriteStore());
-let { curTheme } = $(useThemeStore());
+const themeStore = useThemeStore();
+let { curTheme } = $(themeStore);
+
+onMounted(() => {
+    toggleTheme({ scopeName: curTheme });
+});
 </script>
 
 <template>

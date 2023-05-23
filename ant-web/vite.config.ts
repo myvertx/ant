@@ -70,7 +70,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
                 ],
                 dts: true,
             }),
-            // 创建动态主题切换
+            // 创建动态主题切换 https://github.com/GitOfZGT/vite-plugin-theme-preprocessor/blob/master/README.zh.md
             themePreprocessorPlugin({
                 less: {
                     // 提供多组变量文件
