@@ -13,13 +13,14 @@ const request = globalProperties?.$request;
 
 // ****** 中央状态 ******
 // 收藏
-let { columns, addPath, selectColumnFile } = $(usePathStore());
+let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
 
 /** 收藏菜单点击事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
     const filePath = item.key;
     if (!item.isDir) {
+        clearColumn(columnKey);
         selectColumnFile(columnKey, filePath);
         return;
     }
@@ -33,7 +34,9 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
         // 处理返回的结果
         .then((ro: Ro) => {
             if (ro.result > 0) {
+                clearColumn(columnKey);
                 addPath(filePath, ro.extra as FileRa[]);
+                selectColumnFile(columnKey, filePath);
             }
         });
 }

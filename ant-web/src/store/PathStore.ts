@@ -32,11 +32,22 @@ export const usePathStore = defineStore('pathStore', {
                 files.push({ ...fileMo, key: fileMo.path });
             }
             // this.columns = [];
+
             this.columns.push({
                 path,
                 files,
             });
             console.log('columns', this.columns);
+        },
+        /**
+         * 清空指定路径之后的所有列
+         * @param path 指定列的路径
+         */
+        clearColumn(path: string) {
+            for (let i = this.columns.length - 1; i >= 0; i--) {
+                if (this.columns[i].path === path) return;
+                this.columns.pop();
+            }
         },
         selectColumnFile(columnPath: string, filePath: string) {
             console.log('columnPath', columnPath, 'filePath', filePath);
