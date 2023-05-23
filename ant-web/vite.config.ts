@@ -73,22 +73,21 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
             // 创建动态主题切换
             themePreprocessorPlugin({
                 less: {
-                    // 是否启用任意主题色模式，这里不启用
-                    arbitraryMode: false,
                     // 提供多组变量文件
                     multipleScopeVars: [
                         {
-                            scopeName: 'theme-default',
+                            scopeName: 'default',
                             // 变量文件内容不应该夹带样式代码，设定上只需存在变量
                             path: path.resolve('src/assets/theme/default.less'),
                         },
                         {
-                            scopeName: 'theme-dark',
+                            scopeName: 'dark',
+                            // 变量文件内容不应该夹带样式代码，设定上只需存在变量
                             path: path.resolve('src/assets/theme/dark.less'),
                         },
                     ],
                     // 默认取 multipleScopeVars[0].scopeName
-                    defaultScopeName: 'theme-dark',
+                    defaultScopeName: 'dark',
                 },
             }),
         ],

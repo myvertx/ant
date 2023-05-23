@@ -58,8 +58,6 @@ interface Column {
     path: string;
     /** 文件或目录列表 */
     files: File[];
-    /** 列宽度 */
-    width?: string;
 }
 
 interface File extends FileRa {

@@ -2,6 +2,7 @@
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { usePathStore } from '@/store/PathStore';
+import { useColumnWidthStore } from '@/store/ColumnWidthStore';
 
 /** 当前组件实例 */
 const app = getCurrentInstance();
@@ -13,6 +14,7 @@ const request = globalProperties?.$request;
 // ****** 中央状态 ******
 // 收藏
 let { columns, addPath, selectColumnFile } = $(usePathStore());
+let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
 
 /** 收藏菜单点击事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
@@ -39,7 +41,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
 
 <template>
     <template v-for="column in columns">
-        <div class="column" :style="{ flexBasis: column.width ? column.width : '200px' }">
+        <div class="column" :style="{ flexBasis: getColumnWidth(column.path) || '200px' }">
             <SelectList
                 :componentKey="column.path"
                 :selectedItemKey="column.selectedFile"
@@ -47,7 +49,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
                 @select="onSelect"
             />
         </div>
-        <Splitter />
+        <Splitter @resized="(size:string) => setColumnWidth(column.path, size)" />
     </template>
 </template>
 

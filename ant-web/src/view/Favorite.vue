@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileRa } from '@/mo/FileRa';
+import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { useFavoriteStore } from '@/store/FavoriteStore';
 import { usePathStore } from '@/store/PathStore';

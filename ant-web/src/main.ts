@@ -1,7 +1,6 @@
 import App from './App.vue';
+// import 'ant-design-vue/es/message/style/css';
 import './style.less';
-import 'ant-design-vue/es/message/style/css';
-import 'ant-design-vue/dist/antd.less';
 import { ModuleNamespace } from 'node_modules/vite/types/hot';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 

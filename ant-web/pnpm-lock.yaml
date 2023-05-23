@@ -49,8 +49,8 @@ devDependencies:
     specifier: ^5.0.4
     version: registry.npmmirror.com/typescript@5.0.4
   unplugin-auto-import:
-    specifier: ^0.16.1
-    version: registry.npmmirror.com/unplugin-auto-import@0.16.1
+    specifier: ^0.16.2
+    version: registry.npmmirror.com/unplugin-auto-import@0.16.2
   unplugin-vue-components:
     specifier: ^0.23.0
     version: registry.npmmirror.com/unplugin-vue-components@0.23.0(vue@3.3.4)
@@ -1166,7 +1166,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: registry.npmmirror.com/caniuse-lite@1.0.30001489
-      electron-to-chromium: registry.npmmirror.com/electron-to-chromium@1.4.402
+      electron-to-chromium: registry.npmmirror.com/electron-to-chromium@1.4.404
       node-releases: registry.npmmirror.com/node-releases@2.0.11
       update-browserslist-db: registry.npmmirror.com/update-browserslist-db@1.0.11(browserslist@4.21.5)
     dev: true
@@ -1650,10 +1650,10 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
-  registry.npmmirror.com/electron-to-chromium@1.4.402:
-    resolution: {integrity: sha512-gWYvJSkohOiBE6ecVYXkrDgNaUjo47QEKK0kQzmWyhkH+yoYiG44bwuicTGNSIQRG3WDMsWVZJLRnJnLNkbWvA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/electron-to-chromium/-/electron-to-chromium-1.4.402.tgz}
+  registry.npmmirror.com/electron-to-chromium@1.4.404:
+    resolution: {integrity: sha512-te57sWvQdpxmyd1GiswaodKdXdPgn9cN4ht8JlNa04QgtrfnUdWEo1261rY2vaC6TKaiHn0E7QerJWPKFCvMVw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/electron-to-chromium/-/electron-to-chromium-1.4.404.tgz}
     name: electron-to-chromium
-    version: 1.4.402
+    version: 1.4.404
     dev: true
 
   registry.npmmirror.com/enhanced-resolve@4.5.0:
@@ -3397,10 +3397,10 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  registry.npmmirror.com/unplugin-auto-import@0.16.1:
-    resolution: {integrity: sha512-H3Ky56cGEEHTssxUIFuGXTowGVlT/Bp3MBx1yyCzUHzAtdrO+2r9zpid32f2AkTpQxo2lch6yaTK61Im+rEyPQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/unplugin-auto-import/-/unplugin-auto-import-0.16.1.tgz}
+  registry.npmmirror.com/unplugin-auto-import@0.16.2:
+    resolution: {integrity: sha512-t5f+xArJZRsfgF8Zftc2JFTJJTo7BPkPSeLQUXt6xxambnwWBer8vpEgwaCYrR50MIm5mjmhjebt33OZXIW0uQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/unplugin-auto-import/-/unplugin-auto-import-0.16.2.tgz}
     name: unplugin-auto-import
-    version: 0.16.1
+    version: 0.16.2
     engines: {node: '>=14'}
     peerDependencies:
       '@nuxt/kit': ^3.2.2
