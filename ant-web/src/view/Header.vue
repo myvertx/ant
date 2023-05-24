@@ -1,12 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import { toggleTheme } from '@zougt/vite-plugin-theme-preprocessor/dist/browser-utils';
-import {
-    PlayCircleOutlined,
-    PauseCircleOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined,
-} from '@ant-design/icons-vue';
+import { CloseCircleOutlined } from '@ant-design/icons-vue';
 
 import { useThemeStore } from '@/store/ThemeStore';
 import { useUploadStore } from '@/store/UploadStore';
@@ -21,6 +16,12 @@ let { fileList, percent, cancelUpload } = $(useUploadStore());
 onMounted(() => {
     toggleTheme({ scopeName: curTheme });
 });
+
+/** 格式化百分比 */
+function formatPercent(percent: number) {
+    console.log('percent', percent, percent.toFixed(2) + '%');
+    return percent.toFixed(2) + '%';
+}
 </script>
 
 <template>
@@ -28,14 +29,14 @@ onMounted(() => {
         <h1 class="title">MyVertx Ant</h1>
         <a-popover v-if="fileList.length > 0" placement="bottomRight" trigger="click">
             <template #title>
-                <span class="upload-title">上传文件进度</span>
+                <span class="upload-title">文件上传进度</span>
             </template>
             <template #content>
                 <div class="upload-file" v-for="file in fileList">
                     <UploadFileIcon class="upload-file-icon" />
                     <div class="detail">
                         <div class="file-name">{{ file.name }}</div>
-                        <a-progress :percent="file.percent" />
+                        <a-progress size="small" :percent="file.percent" :format="formatPercent" />
                         <div class="file-status">
                             {{
                                 file.status === 'uploading'
@@ -48,10 +49,10 @@ onMounted(() => {
                                     ? '已删除'
                                     : '未知状态'
                             }}
-                            ---- {{ byteConvert(file.size) }}
+                            ---- {{ byteConvert(file.size || 0) }}
                         </div>
                     </div>
-                    <a-tooltip>
+                    <!-- <a-tooltip>
                         <template #title>继续上传</template>
                         <PlayCircleOutlined class="action-icon" v-if="file.status === 'error'" />
                     </a-tooltip>
@@ -62,7 +63,7 @@ onMounted(() => {
                     <a-tooltip>
                         <template #title>已完成</template>
                         <CheckCircleOutlined class="action-icon" v-if="file.status === 'done'" />
-                    </a-tooltip>
+                    </a-tooltip> -->
                     <a-tooltip>
                         <template #title>取消上传</template>
                         <a-popconfirm
@@ -77,7 +78,7 @@ onMounted(() => {
                 </div>
             </template>
             <a-tooltip>
-                <template #title>上传文件进度</template>
+                <template #title>文件上传进度</template>
                 <a-progress type="circle" :percent="percent" :width="30" />
             </a-tooltip>
         </a-popover>
@@ -133,6 +134,7 @@ onMounted(() => {
     }
     .detail {
         flex-grow: 1;
+        padding-right: 30px;
         .file-name {
             font-size: 14px;
             margin-bottom: -7px;

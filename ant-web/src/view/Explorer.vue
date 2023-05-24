@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { UploadChangeParam, message } from 'ant-design-vue';
-import { UploadOutlined } from '@ant-design/icons-vue';
+import { uploadUrl } from '@/env';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { useColumnWidthStore } from '@/store/ColumnWidthStore';
 import { usePathStore } from '@/store/PathStore';
 import { useUploadStore } from '@/store/UploadStore';
+import { UploadOutlined } from '@ant-design/icons-vue';
+import { UploadChangeParam, UploadFile, message } from 'ant-design-vue';
 
 /** 当前组件实例 */
 const app = getCurrentInstance();
@@ -18,7 +19,7 @@ const request = globalProperties?.$request;
 // 收藏
 let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
-let { fileList } = $(useUploadStore());
+let { fileList, clearUpload, completeUpload } = $(useUploadStore());
 
 /** 选择文件事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
@@ -44,17 +45,29 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
             }
         });
 }
+
+/** 上传前 */
+function beforeUpload(_file: UploadFile, newFileList: UploadFile[]) {
+    return fileList.length + newFileList.length > 5 ? false : true;
+}
+
 /**
- *
+ * 上传状态改变
  */
 function onUploadChange(info: UploadChangeParam) {
+    console.log('onUploadChange', info);
+
+    // 清理上传(在beforeUpload中禁止的上传仍然会加入列表中)
+    clearUpload();
+
     if (info.file.status !== 'uploading') {
         console.log(info.file, info.fileList);
     }
     if (info.file.status === 'done') {
-        message.success(`${info.file.name} file uploaded successfully`);
+        completeUpload(info.file);
+        message.success(`${info.file.name} 文件上传成功！`);
     } else if (info.file.status === 'error') {
-        message.error(`${info.file.name} file upload failed.`);
+        message.error(`${info.file.name} 文件上传失败！`);
     }
 }
 </script>
@@ -75,9 +88,24 @@ function onUploadChange(info: UploadChangeParam) {
                     <a-menu-item>
                         <a-upload
                             v-model:file-list="fileList"
-                            name="file"
-                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            directory
+                            :data="{ abc: 'def' }"
+                            :action="uploadUrl"
                             :showUploadList="false"
+                            :beforeUpload="beforeUpload"
+                            @change="onUploadChange"
+                        >
+                            <upload-outlined />&nbsp;&nbsp;上传文件夹
+                        </a-upload>
+                    </a-menu-item>
+                    <a-menu-item>
+                        <a-upload
+                            v-model:file-list="fileList"
+                            :data="{ abc: 'def' }"
+                            multiple
+                            :action="uploadUrl"
+                            :showUploadList="false"
+                            :beforeUpload="beforeUpload"
                             @change="onUploadChange"
                         >
                             <upload-outlined />&nbsp;&nbsp;上传文件

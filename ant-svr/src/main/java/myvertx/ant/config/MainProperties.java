@@ -9,4 +9,8 @@ public class MainProperties {
      */
     private String root;
 
+    /**
+     * 上传文件大小限制
+     */
+    private String uploadFileSizeLimit;
 }

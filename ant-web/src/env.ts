@@ -29,10 +29,10 @@ console.log('requestBaseUrl', requestBaseUrl);
 /** 是否模拟网络延迟 */
 export const isSimulateNetDelay: boolean = JSON.parse(import.meta.env.VITE_SIMULATE_NET_DELAY);
 
-/**  iconfont.cn中项目库的地址 */
-export const iconFontUrl = import.meta.env.VITE_ICON_FONT_URL;
-
 /** 是否开启将delete、put等请求转换为post请求 */
 export const xHttpMethodOverride: boolean = import.meta.env.VITE_X_HTTP_METHOD_OVERRIDE
     ? JSON.parse(import.meta.env.VITE_X_HTTP_METHOD_OVERRIDE)
     : false;
+
+/**  文件上传的地址 */
+export const uploadUrl = import.meta.env.VITE_UPLOAD_URL;

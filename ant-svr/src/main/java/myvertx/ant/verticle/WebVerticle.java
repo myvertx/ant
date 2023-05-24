@@ -2,19 +2,24 @@ package myvertx.ant.verticle;
 
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.config.MainProperties;
+import myvertx.ant.ra.FileUploadRa;
 import myvertx.ant.ra.PathRa;
 import rebue.wheel.core.file.FileUtils;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +28,9 @@ import java.util.stream.Stream;
 public class WebVerticle extends AbstractWebVerticle {
     @Inject
     private MainProperties mainProperties;
+    @Inject
+    @Named("uploadFileSizeLimit")
+    private Long           uploadFileSizeLimit;
 
     @Override
     protected void configRouter(final Router router) {
@@ -58,6 +66,32 @@ public class WebVerticle extends AbstractWebVerticle {
                     } catch (IOException e) {
                         response.end(Json.encode(Vro.warn("读取路径失败", e.getMessage())));
                     }
+                });
+        BodyHandler bodyHandler = BodyHandler.create();
+        if (uploadFileSizeLimit != 0) {
+            bodyHandler.setBodyLimit(uploadFileSizeLimit);
+        }
+        router.post("/ant/file/upload")
+                .handler(bodyHandler)
+                .handler(ctx -> {
+                    log.debug("body: {}", ctx.body().asString());
+                    List<FileUpload>   fileUploads   = ctx.fileUploads();
+                    List<FileUploadRa> fileUploadRas = new LinkedList<>();
+                    for (FileUpload fileUpload : fileUploads) {
+                        fileUploadRas.add(FileUploadRa.builder()
+                                .name(fileUpload.name())
+                                .uploadedFileName(fileUpload.uploadedFileName())
+                                .fileName(fileUpload.fileName())
+                                .size(fileUpload.size())
+                                .contentType(fileUpload.contentType())
+                                .contentTransferEncoding(fileUpload.contentTransferEncoding())
+                                .charSet(fileUpload.charSet())
+                                .name(fileUpload.name())
+                                .name(fileUpload.name())
+                                .build());
+                    }
+                    log.debug("fileUploads: {}", fileUploadRas);
+                    ctx.response().end(Json.encode(Vro.success("文件上传成功", fileUploadRas)));
                 });
     }
 

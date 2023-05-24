@@ -13,6 +13,8 @@ declare interface ImportMetaEnv {
     readonly VITE_REQUEST_BASE_HOST: string;
     readonly VITE_REQUEST_BASE_PORT: string;
     readonly VITE_REQUEST_BASE_URL: string;
+    /** 文件上传的地址 */
+    readonly VITE_UPLOAD_URL: string;
 }
 
 declare interface ImportMeta {
