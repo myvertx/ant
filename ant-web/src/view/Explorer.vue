@@ -67,6 +67,10 @@ function onUploadChange(info: UploadChangeParam) {
         completeUpload(info.file);
         message.success(`${info.file.name} 文件上传成功！`);
     } else if (info.file.status === 'error') {
+        if (info.file.error?.status === 413) {
+            message.error(`${info.file.name} 文件太大，禁止上传到服务器！`);
+            return;
+        }
         message.error(`${info.file.name} 文件上传失败！`);
     }
 }
