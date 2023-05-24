@@ -16,7 +16,7 @@ const request = globalProperties?.$request;
 let { selected: selectedFavorite, selectListData } = $(useFavoriteStore());
 let { setPath } = $(usePathStore());
 
-/** 收藏菜单点击事件 */
+/** 选择收藏事件 */
 function onSelect(item: { key: string }) {
     const path = item.key;
     // 发出get请求

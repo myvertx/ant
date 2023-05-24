@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { UploadChangeParam, message } from 'ant-design-vue';
 import { UploadOutlined } from '@ant-design/icons-vue';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
-import { usePathStore } from '@/store/PathStore';
 import { useColumnWidthStore } from '@/store/ColumnWidthStore';
+import { usePathStore } from '@/store/PathStore';
+import { useUploadStore } from '@/store/UploadStore';
 
 /** 当前组件实例 */
 const app = getCurrentInstance();
@@ -16,8 +18,9 @@ const request = globalProperties?.$request;
 // 收藏
 let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
+let { fileList } = $(useUploadStore());
 
-/** 收藏菜单点击事件 */
+/** 选择文件事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
     const filePath = item.key;
     if (!item.isDir) {
@@ -41,6 +44,19 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
             }
         });
 }
+/**
+ *
+ */
+function onUploadChange(info: UploadChangeParam) {
+    if (info.file.status !== 'uploading') {
+        console.log(info.file, info.fileList);
+    }
+    if (info.file.status === 'done') {
+        message.success(`${info.file.name} file uploaded successfully`);
+    } else if (info.file.status === 'error') {
+        message.error(`${info.file.name} file upload failed.`);
+    }
+}
 </script>
 
 <template>
@@ -62,7 +78,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
                             name="file"
                             action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                             :showUploadList="false"
-                            @change="handleChange"
+                            @change="onUploadChange"
                         >
                             <upload-outlined />&nbsp;&nbsp;上传文件
                         </a-upload>
