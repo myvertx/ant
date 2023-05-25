@@ -20,22 +20,6 @@ export const useUploadStore = defineStore('uploadStore', {
         },
     },
     actions: {
-        /**
-         * 清理上传(在beforeUpload中禁止的上传仍然会加入列表中)
-         * @returns 清理的数量
-         */
-        clearUpload() {
-            console.log('clearUpload', this.fileList);
-
-            let clearCount = 0;
-            for (let i = this.fileList.length - 1; i >= 0; i--) {
-                if (!this.fileList[i].status) {
-                    this.fileList.splice(i, 1);
-                    clearCount++;
-                }
-            }
-            return clearCount;
-        },
         /** 取消上传 */
         cancelUpload(file: UploadFile) {
             for (let i = this.fileList.length - 1; i >= 0; i--) {
@@ -48,18 +32,6 @@ export const useUploadStore = defineStore('uploadStore', {
     },
     persist: true,
 });
-
-// interface UploadFile {
-//     uid: string;
-//     /** 文件名称 */
-//     name: string;
-//     /** 文件大小 */
-//     size: number;
-//     /** 文件上传进度 */
-//     percent: number;
-//     /** 文件上传状态 */
-//     status: 'uploading' | 'done' | 'error' | 'removed';
-// }
 
 interface State {
     /**

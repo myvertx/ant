@@ -19,7 +19,7 @@ const request = globalProperties?.$request;
 // 收藏
 let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
-let { fileList, clearUpload, cancelUpload } = $(useUploadStore());
+let { fileList, cancelUpload } = $(useUploadStore());
 
 /** 选择文件事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
