@@ -8,6 +8,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
+import org.apache.commons.io.FilenameUtils;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
@@ -103,10 +104,12 @@ public class WebVerticle extends AbstractWebVerticle {
                         Path   srcPath    = Path.of(fileUpload.uploadedFileName());
                         Path   dstPath    = Path.of(rootPath, fileDir, fileUpload.fileName());
                         String dstPathStr = dstPath.toString();
+                        String baseName   = FilenameUtils.removeExtension(dstPathStr);
+                        String extension  = FilenameUtils.getExtension(dstPathStr);
                         int    i          = 0;
                         while (Files.exists(dstPath)) {
                             i++;
-                            dstPath = Path.of(dstPathStr + "(" + i + ")");
+                            dstPath = Path.of(baseName + "(" + i + ")." + extension);
                         }
                         log.debug("remove: {} -> {}", srcPath, dstPath);
                         try {
