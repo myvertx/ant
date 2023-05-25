@@ -8,6 +8,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
+import myvertx.ant.ra.UploadRa;
 import org.apache.commons.io.FilenameUtils;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
@@ -81,47 +82,50 @@ public class WebVerticle extends AbstractWebVerticle {
                     log.debug("formAttributes: {}", formAttributes);
                     String           fileDir     = formAttributes.get("fileDir");
                     List<FileUpload> fileUploads = ctx.fileUploads();
-                    for (FileUpload fileUpload : fileUploads) {
-                        log.debug("""
-                                        fileUpload:
-                                        - name: {}
-                                        - uploadedFileName: {}
-                                        - fileName: {}
-                                        - size: {}
-                                        - contentType: {}
-                                        - contentTransferEncoding: {}
-                                        - charSet: {}
-                                        """,
-                                fileUpload.name(),
-                                fileUpload.uploadedFileName(),
-                                fileUpload.fileName(),
-                                fileUpload.size(),
-                                fileUpload.contentType(),
-                                fileUpload.contentTransferEncoding(),
-                                fileUpload.charSet()
-                        );
+                    FileUpload       fileUpload  = fileUploads.get(0);
+                    log.debug("""
+                                    fileUpload:
+                                    - name: {}
+                                    - uploadedFileName: {}
+                                    - fileName: {}
+                                    - size: {}
+                                    - contentType: {}
+                                    - contentTransferEncoding: {}
+                                    - charSet: {}
+                                    """,
+                            fileUpload.name(),
+                            fileUpload.uploadedFileName(),
+                            fileUpload.fileName(),
+                            fileUpload.size(),
+                            fileUpload.contentType(),
+                            fileUpload.contentTransferEncoding(),
+                            fileUpload.charSet()
+                    );
 
-                        Path   srcPath    = Path.of(fileUpload.uploadedFileName());
-                        Path   dstPath    = Path.of(rootPath, fileDir, fileUpload.fileName());
-                        String dstPathStr = dstPath.toString();
-                        String baseName   = FilenameUtils.removeExtension(dstPathStr);
-                        String extension  = FilenameUtils.getExtension(dstPathStr);
-                        int    i          = 0;
-                        while (Files.exists(dstPath)) {
-                            i++;
-                            dstPath = Path.of(baseName + "(" + i + ")." + extension);
-                        }
-                        log.debug("remove: {} -> {}", srcPath, dstPath);
-                        try {
-                            Files.move(srcPath,
-                                    dstPath,
-                                    StandardCopyOption.ATOMIC_MOVE);
-                        } catch (IOException e) {
-                            response.end(Json.encode(Vro.fail("文件上传后移动出错", e.getMessage())));
-                            return;
-                        }
+                    Path   srcPath    = Path.of(fileUpload.uploadedFileName());
+                    Path   dstPath    = Path.of(rootPath, fileDir, fileUpload.fileName());
+                    String dstPathStr = dstPath.toString();
+                    String baseName   = FilenameUtils.removeExtension(dstPathStr);
+                    String extension  = FilenameUtils.getExtension(dstPathStr);
+                    int    i          = 0;
+                    while (Files.exists(dstPath)) {
+                        i++;
+                        dstPath = Path.of(baseName + "(" + i + ")." + extension);
                     }
-                    response.end(Json.encode(Vro.success("文件上传成功")));
+                    log.debug("remove: {} -> {}", srcPath, dstPath);
+                    try {
+                        Files.move(srcPath,
+                                dstPath,
+                                StandardCopyOption.ATOMIC_MOVE);
+                    } catch (IOException e) {
+                        response.end(Json.encode(Vro.fail("文件上传后移动出错", e.getMessage())));
+                        return;
+                    }
+                    response.end(Json.encode(Vro.success("文件上传成功", UploadRa.builder()
+                            .fileDir(fileDir)
+                            .fileName(dstPath.getFileName().toString())
+                            .fileFullPath(dstPath.toString())
+                            .build())));
                 });
     }
 

@@ -13,31 +13,24 @@ export const usePathStore = defineStore('pathStore', {
         // curPath: (state) => state.selectedKeys[0],
     },
     actions: {
-        setPath(path: string, fileMos: FileRa[]) {
-            this.selected = path;
+        pushFiles(path: string, fileMos: FileRa[]) {
             const files: File[] = [];
             for (const fileMo of fileMos) {
                 files.push({ ...fileMo, key: fileMo.path });
             }
-            this.columns = [];
             this.columns.push({
                 path,
                 files,
             });
         },
+        setPath(path: string, fileMos: FileRa[]) {
+            this.selected = path;
+            this.columns = [];
+            this.pushFiles(path, fileMos);
+        },
         addPath(path: string, fileMos: FileRa[]) {
             this.selected = path;
-            const files: File[] = [];
-            for (const fileMo of fileMos) {
-                files.push({ ...fileMo, key: fileMo.path });
-            }
-            // this.columns = [];
-
-            this.columns.push({
-                path,
-                files,
-            });
-            console.log('columns', this.columns);
+            this.pushFiles(path, fileMos);
         },
         /**
          * 清空指定路径之后的所有列
@@ -49,9 +42,16 @@ export const usePathStore = defineStore('pathStore', {
                 this.columns.pop();
             }
         },
-        selectColumnFile(columnPath: string, filePath: string) {
-            console.log('columnPath', columnPath, 'filePath', filePath);
-
+        /** 在指定列中添加文件 */
+        addFileInColumn(columnPath: string, file: FileRa) {
+            for (const column of this.columns) {
+                if (column.path === columnPath) {
+                    column.files.push({ ...file, key: file.path });
+                }
+            }
+        },
+        /** 选择指定列中的文件 */
+        selectFileInColumn(columnPath: string, filePath: string) {
             for (const column of this.columns) {
                 if (column.path === columnPath) {
                     column.selectedFile = filePath;

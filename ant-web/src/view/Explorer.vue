@@ -17,7 +17,7 @@ const request = globalProperties?.$request;
 
 // ****** 中央状态 ******
 // 收藏
-let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
+let { columns, addPath, clearColumn, addFileInColumn, selectFileInColumn } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
 let { fileList, cancelUpload } = $(useUploadStore());
 
@@ -26,7 +26,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
     const filePath = item.key;
     if (!item.isDir) {
         clearColumn(columnKey);
-        selectColumnFile(columnKey, filePath);
+        selectFileInColumn(columnKey, filePath);
         return;
     }
 
@@ -41,7 +41,7 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
             if (ro.result > 0) {
                 clearColumn(columnKey);
                 addPath(filePath, ro.extra as FileRa[]);
-                selectColumnFile(columnKey, filePath);
+                selectFileInColumn(columnKey, filePath);
             }
         });
 }
@@ -73,7 +73,11 @@ function onUploadChange(info: UploadChangeParam) {
             message.warn(`不能上传${info.file.name}文件，最多只能同时上传${maxUploadings}个文件`);
         }
     } else if (info.file.status === 'done') {
-        cancelUpload(info.file);
+        console.log('onUploadChange', info);
+        const file = info.file;
+        const ro = file.response.extra;
+        cancelUpload(file);
+        addFileInColumn(ro.fileDir, { isDir: false, name: ro.fileName, path: ro.fileFullPath });
         message.success(`${info.file.name} 文件上传成功！`);
     } else if (info.file.status === 'error') {
         if (info.file.error?.status === 413) {
