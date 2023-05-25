@@ -18,6 +18,14 @@ export const usePathStore = defineStore('pathStore', {
             for (const fileMo of fileMos) {
                 files.push({ ...fileMo, key: fileMo.path });
             }
+            files.sort((a: File, b: File) => {
+                if (a.isDir && !b.isDir) {
+                    return -1;
+                } else if (!a.isDir && b.isDir) {
+                    return 1;
+                }
+                return a.name > b.name ? 1 : -1;
+            });
             this.columns.push({
                 path,
                 files,
