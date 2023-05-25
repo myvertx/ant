@@ -15,6 +15,8 @@ declare interface ImportMetaEnv {
     readonly VITE_REQUEST_BASE_URL: string;
     /** 文件上传的地址 */
     readonly VITE_UPLOAD_URL: string;
+    /** 文件最大上传数 */
+    readonly VITE__MAX_UPLOADINGS: number;
 }
 
 declare interface ImportMeta {

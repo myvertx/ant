@@ -19,7 +19,6 @@ onMounted(() => {
 
 /** 格式化百分比 */
 function formatPercent(percent: number) {
-    console.log('percent', percent, percent.toFixed(2) + '%');
     return percent.toFixed(2) + '%';
 }
 </script>

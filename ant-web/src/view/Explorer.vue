@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { uploadUrl } from '@/env';
+import { maxUploadings, uploadUrl } from '@/env';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { useColumnWidthStore } from '@/store/ColumnWidthStore';
-import { usePathStore, Column } from '@/store/PathStore';
+import { Column, usePathStore } from '@/store/PathStore';
 import { useUploadStore } from '@/store/UploadStore';
 import { UploadOutlined } from '@ant-design/icons-vue';
 import { UploadChangeParam, UploadFile, message } from 'ant-design-vue';
@@ -19,7 +19,7 @@ const request = globalProperties?.$request;
 // 收藏
 let { columns, addPath, clearColumn, selectColumnFile } = $(usePathStore());
 let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
-let { fileList, clearUpload, completeUpload } = $(useUploadStore());
+let { fileList, clearUpload, cancelUpload } = $(useUploadStore());
 
 /** 选择文件事件 */
 function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
@@ -55,13 +55,7 @@ function uploadData(file: UploadFile, column: Column) {
         lastModified: file.lastModified,
         fileDir: column.path,
     };
-    console.log('uploadData', file, data);
     return data;
-}
-
-/** 上传前 */
-function beforeUpload(_file: UploadFile, newFileList: UploadFile[]) {
-    return fileList.length + newFileList.length > 5 ? false : true;
 }
 
 /**
@@ -70,14 +64,18 @@ function beforeUpload(_file: UploadFile, newFileList: UploadFile[]) {
 function onUploadChange(info: UploadChangeParam) {
     console.log('onUploadChange', info);
 
-    // 清理上传(在beforeUpload中禁止的上传仍然会加入列表中)
-    clearUpload();
-
-    if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList);
-    }
-    if (info.file.status === 'done') {
-        completeUpload(info.file);
+    if (info.file.status === 'uploading') {
+        // 判断是否是因为超过上最大文件数不能上传
+        if (info.file.percent === 0) {
+            for (const file of info.fileList) {
+                if (file.uid === info.file.uid) {
+                    return;
+                }
+            }
+            message.warn(`不能上传${info.file.name}文件，最多只能同时上传${maxUploadings}个文件`);
+        }
+    } else if (info.file.status === 'done') {
+        cancelUpload(info.file);
         message.success(`${info.file.name} 文件上传成功！`);
     } else if (info.file.status === 'error') {
         if (info.file.error?.status === 413) {
@@ -107,9 +105,9 @@ function onUploadChange(info: UploadChangeParam) {
                             v-model:file-list="fileList"
                             directory
                             :data="(file:UploadFile) => uploadData(file, column)"
+                            :maxCount="maxUploadings"
                             :action="uploadUrl"
                             :showUploadList="false"
-                            :beforeUpload="beforeUpload"
                             @change="onUploadChange"
                         >
                             <upload-outlined />&nbsp;&nbsp;上传文件夹
@@ -117,12 +115,12 @@ function onUploadChange(info: UploadChangeParam) {
                     </a-menu-item>
                     <a-menu-item>
                         <a-upload
+                            multiple
                             v-model:file-list="fileList"
                             :data="(file:UploadFile) => uploadData(file, column)"
-                            multiple
+                            :maxCount="maxUploadings"
                             :action="uploadUrl"
                             :showUploadList="false"
-                            :beforeUpload="beforeUpload"
                             @change="onUploadChange"
                         >
                             <upload-outlined />&nbsp;&nbsp;上传文件

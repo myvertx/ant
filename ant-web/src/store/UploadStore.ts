@@ -20,21 +20,25 @@ export const useUploadStore = defineStore('uploadStore', {
         },
     },
     actions: {
-        /** 清理上传(在beforeUpload中禁止的上传仍然会加入列表中) */
+        /**
+         * 清理上传(在beforeUpload中禁止的上传仍然会加入列表中)
+         * @returns 清理的数量
+         */
         clearUpload() {
+            console.log('clearUpload', this.fileList);
+
+            let clearCount = 0;
             for (let i = this.fileList.length - 1; i >= 0; i--) {
                 if (!this.fileList[i].status) {
                     this.fileList.splice(i, 1);
+                    clearCount++;
                 }
             }
-        },
-        /** 完成上传 */
-        completeUpload(file: UploadFile) {
-            this.cancelUpload(file);
+            return clearCount;
         },
         /** 取消上传 */
         cancelUpload(file: UploadFile) {
-            for (let i = 0; i < this.fileList.length; i++) {
+            for (let i = this.fileList.length - 1; i >= 0; i--) {
                 if (this.fileList[i].uid === file.uid) {
                     this.fileList.splice(i, 1);
                     return;

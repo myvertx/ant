@@ -36,3 +36,5 @@ export const xHttpMethodOverride: boolean = import.meta.env.VITE_X_HTTP_METHOD_O
 
 /**  文件上传的地址 */
 export const uploadUrl = import.meta.env.VITE_UPLOAD_URL;
+/** 文件最大上传数 */
+export const maxUploadings = import.meta.env.VITE__MAX_UPLOADINGS - 0;
