@@ -62,7 +62,7 @@ export const usePathStore = defineStore('pathStore', {
     persist: true,
 });
 
-interface Column {
+export interface Column {
     /** 选择的文件(名称) */
     selectedFile?: string;
     /** 路径 */

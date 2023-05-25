@@ -3,7 +3,7 @@ import { uploadUrl } from '@/env';
 import { FileRa } from '@/ro/FileRa';
 import { Ro } from '@/ro/Ro';
 import { useColumnWidthStore } from '@/store/ColumnWidthStore';
-import { usePathStore } from '@/store/PathStore';
+import { usePathStore, Column } from '@/store/PathStore';
 import { useUploadStore } from '@/store/UploadStore';
 import { UploadOutlined } from '@ant-design/icons-vue';
 import { UploadChangeParam, UploadFile, message } from 'ant-design-vue';
@@ -44,6 +44,19 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
                 selectColumnFile(columnKey, filePath);
             }
         });
+}
+
+/** 上传data参数 */
+function uploadData(file: UploadFile, column: Column) {
+    const data = {
+        uid: file.uid,
+        fileName: file.name,
+        fileSize: file.size,
+        lastModified: file.lastModified,
+        fileDir: column.path,
+    };
+    console.log('uploadData', file, data);
+    return data;
 }
 
 /** 上传前 */
@@ -93,7 +106,7 @@ function onUploadChange(info: UploadChangeParam) {
                         <a-upload
                             v-model:file-list="fileList"
                             directory
-                            :data="{ abc: 'def' }"
+                            :data="(file:UploadFile) => uploadData(file, column)"
                             :action="uploadUrl"
                             :showUploadList="false"
                             :beforeUpload="beforeUpload"
@@ -105,7 +118,7 @@ function onUploadChange(info: UploadChangeParam) {
                     <a-menu-item>
                         <a-upload
                             v-model:file-list="fileList"
-                            :data="{ abc: 'def' }"
+                            :data="(file:UploadFile) => uploadData(file, column)"
                             multiple
                             :action="uploadUrl"
                             :showUploadList="false"

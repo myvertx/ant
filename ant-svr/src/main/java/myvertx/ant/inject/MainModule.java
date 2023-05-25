@@ -6,9 +6,11 @@ import io.vertx.core.json.JsonObject;
 import myvertx.ant.config.MainProperties;
 import org.apache.commons.lang3.StringUtils;
 import rebue.wheel.core.BytesConverter;
+import rebue.wheel.core.file.FileUtils;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.nio.file.Paths;
 
 public class MainModule extends AbstractModule {
 
@@ -16,6 +18,13 @@ public class MainModule extends AbstractModule {
     @Provides
     public MainProperties getMainProperties(@Named("config") final JsonObject config) {
         return config.getJsonObject("main").mapTo(MainProperties.class);
+    }
+
+    @Singleton
+    @Provides
+    @Named("rootPath")
+    public String getRootPath(MainProperties mainProperties) {
+        return Paths.get(FileUtils.getClassesPath(), mainProperties.getRoot()).toString();
     }
 
     @Singleton
