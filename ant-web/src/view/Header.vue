@@ -37,18 +37,14 @@ function formatPercent(percent: number) {
                         <div class="file-name">{{ file.name }}</div>
                         <a-progress size="small" :percent="file.percent" :format="formatPercent" />
                         <div class="file-status">
-                            {{
-                                file.status === 'uploading'
-                                    ? '上传中'
-                                    : file.status === 'done'
-                                    ? '已完成'
-                                    : file.status === 'error'
-                                    ? '错误'
-                                    : file.status === 'removed'
-                                    ? '已删除'
-                                    : '未知状态'
-                            }}
-                            ---- {{ byteConvert(file.size || 0) }}
+                            <span v-if="file.status === 'uploading'">上传中</span>
+                            <span v-else-if="file.status === 'done'">已完成</span>
+                            <span v-else-if="file.status === 'removed'">已删除</span>
+                            <span v-else-if="file.status === 'error'" class="err">
+                                错误: {{ file.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
+                            </span>
+                            <span v-else>未知状态</span>
+                            <span>---- {{ byteConvert(file.size || 0) }}</span>
                         </div>
                     </div>
                     <!-- <a-tooltip>
@@ -141,6 +137,9 @@ function formatPercent(percent: number) {
         .file-status {
             font-size: 10px;
             margin-top: -5px;
+            .err {
+                color: @error-color;
+            }
         }
     }
     .action-icon {

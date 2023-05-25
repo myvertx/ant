@@ -62,8 +62,6 @@ function uploadData(file: UploadFile, column: Column) {
  * 上传状态改变
  */
 function onUploadChange(info: UploadChangeParam) {
-    console.log('onUploadChange', info);
-
     if (info.file.status === 'uploading') {
         // 判断是否是因为超过上最大文件数不能上传
         if (info.file.percent === 0) {
