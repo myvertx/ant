@@ -135,7 +135,7 @@ function onUploadChange(info: UploadChangeParam) {
                             :showUploadList="false"
                             @change="onUploadChange"
                         >
-                            <upload-outlined />&nbsp;&nbsp;上传文件夹
+                            <span class="upload-dir"><upload-outlined />&nbsp;&nbsp;上传文件夹</span>
                         </a-upload>
                     </a-menu-item>
                     <a-menu-item>
@@ -148,7 +148,7 @@ function onUploadChange(info: UploadChangeParam) {
                             :showUploadList="false"
                             @change="onUploadChange"
                         >
-                            <upload-outlined />&nbsp;&nbsp;上传文件
+                            <span class="upload-file"><upload-outlined />&nbsp;&nbsp;上传文件</span>
                         </a-upload>
                     </a-menu-item>
                 </a-menu>
@@ -165,4 +165,23 @@ function onUploadChange(info: UploadChangeParam) {
     /** 不换行 */
     white-space: nowrap;
 }
+.upload-dir {
+    margin: -10px -10px;
+    padding: 10px 10px;
+}
+.upload-file {
+    margin: -10px -25px -10px -10px;
+    padding: 10px 25px 10px 10px;
+}
+</style>
+
+<style lang="less">
+// .ant-dropdown-menu-item {
+//     .ant-upload-select {
+//         [role='button'] {
+//             margin: 0 -20px;
+//             padding: 0 20px;
+//         }
+//     }
+// }
 </style>

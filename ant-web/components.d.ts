@@ -7,8 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    AButton: typeof import('ant-design-vue/es')['Button']
-    AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
@@ -24,7 +22,6 @@ declare module '@vue/runtime-core' {
     Info: typeof import('./src/view/Info.vue')['default']
     SelectList: typeof import('./src/component/SelectList.vue')['default']
     Splitter: typeof import('./src/component/Splitter.vue')['default']
-    UploadFile: typeof import('./src/component/icon/UploadFile.vue')['default']
     UploadFileIcon: typeof import('./src/component/icon/UploadFileIcon.vue')['default']
   }
 }
