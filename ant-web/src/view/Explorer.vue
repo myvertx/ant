@@ -6,7 +6,8 @@ import { useColumnWidthStore } from '@/store/ColumnWidthStore';
 import { Column, usePathStore } from '@/store/PathStore';
 import { useUploadStore } from '@/store/UploadStore';
 import { UploadOutlined } from '@ant-design/icons-vue';
-import { UploadChangeParam, UploadFile, message } from 'ant-design-vue';
+import { UploadChangeParam, message } from 'ant-design-vue';
+import { FileType } from 'ant-design-vue/lib/upload/interface';
 
 /** 当前组件实例 */
 const app = getCurrentInstance();
@@ -47,13 +48,25 @@ function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
 }
 
 /** 上传data参数 */
-function uploadData(file: UploadFile, column: Column) {
+function uploadData(file: FileType, column: Column) {
+    console.log('uploadData', file);
+    const fileNameWithDir = file.webkitRelativePath as string;
+    let createDir = '';
+    if (fileNameWithDir) {
+        const index = fileNameWithDir.indexOf('/');
+        if (index !== -1) {
+            createDir = fileNameWithDir.substring(0, index);
+        }
+    }
+
     const data = {
         uid: file.uid,
         fileName: file.name,
         fileSize: file.size,
         lastModified: file.lastModified,
         fileDir: column.path,
+        /** 上传后要创建的目录 */
+        createDir,
     };
     return data;
 }
@@ -75,9 +88,19 @@ function onUploadChange(info: UploadChangeParam) {
     } else if (info.file.status === 'done') {
         console.log('onUploadChange', info);
         const file = info.file;
-        const ro = file.response.extra;
         cancelUpload(file);
-        addFileInColumn(ro.fileDir, { isDir: false, name: ro.fileName, path: ro.fileFullPath });
+        const fileNameWithDir = file.originFileObj?.webkitRelativePath as string;
+        const ro = file.response.extra;
+        if (fileNameWithDir) {
+            const fileDir = ro.fileDir;
+            let index = fileNameWithDir.indexOf('/');
+            const dirName = fileNameWithDir.substring(0, index);
+            index = fileDir.lastIndexOf('/');
+            const columnPath = fileDir.substring(0, index);
+            addFileInColumn(columnPath, { isDir: true, name: dirName, path: fileDir });
+        } else {
+            addFileInColumn(ro.fileDir, { isDir: false, name: ro.fileName, path: ro.fileFullPath });
+        }
         message.success(`${info.file.name} 文件上传成功！`);
     } else if (info.file.status === 'error') {
         if (info.file.error?.status === 413) {
@@ -106,7 +129,7 @@ function onUploadChange(info: UploadChangeParam) {
                         <a-upload
                             v-model:file-list="fileList"
                             directory
-                            :data="(file:UploadFile) => uploadData(file, column)"
+                            :data="(file:FileType) => uploadData(file, column)"
                             :maxCount="maxUploadings"
                             :action="uploadUrl"
                             :showUploadList="false"
@@ -119,7 +142,7 @@ function onUploadChange(info: UploadChangeParam) {
                         <a-upload
                             multiple
                             v-model:file-list="fileList"
-                            :data="(file:UploadFile) => uploadData(file, column)"
+                            :data="(file:FileType) => uploadData(file, column)"
                             :maxCount="maxUploadings"
                             :action="uploadUrl"
                             :showUploadList="false"

@@ -10,11 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,6 +83,7 @@ public class WebVerticle extends AbstractWebVerticle {
                     MultiMap formAttributes = ctx.request().formAttributes();
                     log.debug("formAttributes: {}", formAttributes);
                     String           fileDir     = formAttributes.get("fileDir");
+                    String           createDir   = formAttributes.get("createDir");
                     List<FileUpload> fileUploads = ctx.fileUploads();
                     FileUpload       fileUpload  = fileUploads.get(0);
                     log.debug("""
@@ -102,8 +105,32 @@ public class WebVerticle extends AbstractWebVerticle {
                             fileUpload.charSet()
                     );
 
-                    Path   srcPath    = Path.of(fileUpload.uploadedFileName());
-                    Path   dstPath    = Path.of(rootPath, fileDir, fileUpload.fileName());
+                    // 临时文件路径
+                    Path srcPath = Path.of(fileUpload.uploadedFileName());
+                    // 是否创建目录
+                    if (StringUtils.isNotBlank(createDir)) {
+                        fileDir += File.separator + createDir;
+                    }
+                    // 目的地目录
+                    Path dstDir = Path.of(rootPath, fileDir);
+                    // 如果目录不存在则创建
+                    if (Files.notExists(dstDir)) {
+                        try {
+                            Files.createDirectories(dstDir);
+                        } catch (IOException e) {
+                            String msg = "文件上传后创建目录出错";
+                            log.error(msg, e);
+                            try {
+                                Files.delete(srcPath);
+                            } catch (IOException ex) {
+                                log.error("删除上传的临时文件出错", e);
+                            }
+                            response.end(Json.encode(Vro.fail(msg, e.getMessage())));
+                            return;
+                        }
+                    }
+                    // 目的地
+                    Path   dstPath    = Path.of(dstDir.toString(), fileUpload.fileName());
                     String dstPathStr = dstPath.toString();
                     String baseName   = FilenameUtils.removeExtension(dstPathStr);
                     String extension  = FilenameUtils.getExtension(dstPathStr);
@@ -118,7 +145,14 @@ public class WebVerticle extends AbstractWebVerticle {
                                 dstPath,
                                 StandardCopyOption.ATOMIC_MOVE);
                     } catch (IOException e) {
-                        response.end(Json.encode(Vro.fail("文件上传后移动出错", e.getMessage())));
+                        String msg = "文件上传后移动出错";
+                        log.error(msg, e);
+                        try {
+                            Files.delete(srcPath);
+                        } catch (IOException ex) {
+                            log.error("删除上传的临时文件出错", e);
+                        }
+                        response.end(Json.encode(Vro.fail(msg, e.getMessage())));
                         return;
                     }
                     response.end(Json.encode(Vro.success("文件上传成功", UploadRa.builder()

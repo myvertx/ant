@@ -54,6 +54,10 @@ export const usePathStore = defineStore('pathStore', {
         addFileInColumn(columnPath: string, file: FileRa) {
             for (const column of this.columns) {
                 if (column.path === columnPath) {
+                    // 查找是否已存在
+                    for (const columnFile of column.files) {
+                        if (file.path === columnFile.path) return;
+                    }
                     column.files.push({ ...file, key: file.path });
                 }
             }
