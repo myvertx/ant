@@ -11,7 +11,7 @@
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
 
-        <wheel.version>2.0.4</wheel.version>
+        <wheel.version>2.1.6</wheel.version>
     </properties>
 
     <dependencyManagement>
@@ -116,8 +116,14 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

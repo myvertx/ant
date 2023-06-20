@@ -6,6 +6,8 @@ import io.vertx.core.json.Json;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
@@ -14,8 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

@@ -3,13 +3,13 @@ package myvertx.ant.inject;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import io.vertx.core.json.JsonObject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import myvertx.ant.config.MainProperties;
 import org.apache.commons.lang3.StringUtils;
 import rebue.wheel.core.BytesConverter;
 import rebue.wheel.core.file.FileUtils;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.nio.file.Paths;
 
 public class MainModule extends AbstractModule {
