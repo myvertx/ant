@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>myvertx.ant</groupId>
     <artifactId>ant-svr</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <description>管理服务器资源的web应用</description>
 
     <properties>
