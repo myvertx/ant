@@ -8,6 +8,7 @@
         "build": "vue-tsc && vite build",
         "build-ydnw": "vue-tsc && vite build --mode ydnw",
         "build-ydww": "vue-tsc && vite build --mode ydww",
+        "build-zwww": "vue-tsc && vite build --mode zwww",
         "preview": "vite preview",
         "build-antdv-theme-dark": "lessc --js src/assets/theme/dark.less src/assets/theme/dark.css",
         "build-antdv-theme-default": "lessc --js src/assets/theme/default.less src/assets/theme/default.css"
