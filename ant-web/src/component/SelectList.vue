@@ -1,34 +1,47 @@
 <script setup lang="ts">
-import { FolderFilled, FolderOpenFilled, FileFilled, RightOutlined } from '@ant-design/icons-vue';
+import { FileFilled, FolderFilled, FolderOpenFilled, RightOutlined } from '@ant-design/icons-vue';
 
-interface SelectListItem {
-    isDir: boolean;
-    key: string;
+interface Item {
+    /** 是否目录 */
+    isDir?: boolean;
+    /** 项目的名称(用于在列中显示) */
     name: string;
 }
 interface Props {
-    componentKey?: string;
-    selectedItemKey?: string;
-    data: SelectListItem[];
+    /** 选择项目的索引列表 */
+    selectedItemIndices?: number[];
+    data: Item[];
 }
-const { componentKey, selectedItemKey, data } = defineProps<Props>();
+const { selectedItemIndices, data } = defineProps<Props>();
 const emit = defineEmits(['select']);
-function onClick(item: SelectListItem) {
-    emit('select', item, componentKey);
+/**
+ * 鼠标点击项目事件
+ * @param item 点击的项目
+ * @param index 项目的索引
+ */
+function onClick(item: Item, index: number) {
+    emit('select', item, index);
 }
 </script>
 
 <template>
-    <div class="item-wrap" v-for="item in data" :key="item.key" @click="onClick(item)">
-        <div class="item" v-bind:class="{ selected: item.key === selectedItemKey }">
-            <div class="icon-left" v-if="item.isDir !== undefined">
-                <folder-filled v-if="item.isDir && item.key !== selectedItemKey" />
-                <folder-open-filled v-if="item.isDir && item.key === selectedItemKey" />
-                <file-filled v-if="!item.isDir" />
-            </div>
-            <div class="item-name">{{ item.name }}</div>
-            <div class="icon-right" v-if="item.isDir">
-                <right-outlined />
+    <div>
+        <div class="item-wrap" v-for="(item, index) in data" @click="onClick(item, index)">
+            <div
+                class="item"
+                v-bind:class="{ selected: selectedItemIndices && selectedItemIndices.indexOf(index) > -1 }"
+            >
+                <div class="icon-left" v-if="item.isDir !== undefined">
+                    <folder-open-filled
+                        v-if="item.isDir && selectedItemIndices?.length === 1 && selectedItemIndices[0] === index"
+                    />
+                    <folder-filled v-else-if="item.isDir" />
+                    <file-filled v-else />
+                </div>
+                <div class="item-name">{{ item.name }}</div>
+                <div class="icon-right" v-if="item.isDir">
+                    <right-outlined />
+                </div>
             </div>
         </div>
     </div>

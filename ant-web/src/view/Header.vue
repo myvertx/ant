@@ -2,15 +2,18 @@
 // @ts-ignore
 import { toggleTheme } from '@zougt/vite-plugin-theme-preprocessor/dist/browser-utils';
 import { CloseCircleOutlined } from '@ant-design/icons-vue';
+import { byteConvert } from '@/util/comm';
 
 import { useThemeStore } from '@/store/ThemeStore';
 import { useUploadStore } from '@/store/UploadStore';
-import { byteConvert } from '@/util/comm';
+import { useRemoteStore } from '@/store/RemoteStore';
 
 // ****** 中央状态 ******
-// 收藏
-const themeStore = useThemeStore();
-let { curTheme } = $(themeStore);
+// 主题
+let { curTheme } = $(useThemeStore());
+// 远端
+let { curRemoteIndex, remotes } = $(useRemoteStore());
+// 上传
 let { fileList, percent, cancelUpload } = $(useUploadStore());
 
 onMounted(() => {
@@ -26,6 +29,11 @@ function formatPercent(percent: number) {
 <template>
     <div class="header">
         <h1 class="title">MyVertx Ant</h1>
+        <div class="content">
+            <a-radio-group v-model:value="curRemoteIndex" button-style="solid">
+                <a-radio-button v-for="(remote, index) in remotes" :value="index">{{ remote.name }}</a-radio-button>
+            </a-radio-group>
+        </div>
         <a-popover v-if="fileList.length > 0" placement="bottomRight" trigger="click">
             <template #title>
                 <span class="upload-title">文件上传进度</span>
@@ -99,6 +107,11 @@ function formatPercent(percent: number) {
     height: @header-height;
     background-color: @background-color-heaviest;
     .title {
+        line-height: @header-height;
+        margin: 0;
+        padding: 0 20px;
+    }
+    .content {
         line-height: @header-height;
         margin: 0;
         padding: 0 20px;

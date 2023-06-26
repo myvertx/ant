@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useFavoriteStore } from '@/store/FavoriteStore';
+import { useRemoteStore } from '@/store/RemoteStore';
 
 // ****** 中央状态 ******
-// 收藏
-let { width: favoriteWidth } = $(useFavoriteStore());
+// 远端
+let { favoriteWidth, setFavoriteWidth } = $(useRemoteStore());
 </script>
 
 <template>
@@ -12,7 +12,7 @@ let { width: favoriteWidth } = $(useFavoriteStore());
         <div class="left" :style="{ flexBasis: favoriteWidth }">
             <Favorite />
         </div>
-        <Splitter @resized="(size:string) => (favoriteWidth = size)" />
+        <Splitter @resized="setFavoriteWidth" />
         <div class="client">
             <Explorer />
         </div>

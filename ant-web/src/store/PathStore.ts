@@ -1,6 +1,6 @@
 // 你可以对 `defineStore()` 的返回值进行任意命名，但最好使用 store 的名字，同时以 `use` 开头且以 `Store` 结尾。(比如 `useUserStore`，`useCartStore`，`useProductStore`)
 
-import { FileRa } from '@/ro/FileRa';
+import { FileMo } from '@/mo/FileMo';
 
 // 第一个参数是你的应用中 Store 的唯一 ID。
 export const usePathStore = defineStore('pathStore', {
@@ -13,7 +13,7 @@ export const usePathStore = defineStore('pathStore', {
         // curPath: (state) => state.selectedKeys[0],
     },
     actions: {
-        pushFiles(path: string, fileMos: FileRa[]) {
+        pushFiles(path: string, fileMos: FileMo[]) {
             const files: File[] = [];
             for (const fileMo of fileMos) {
                 files.push({ ...fileMo, key: fileMo.path });
@@ -31,12 +31,12 @@ export const usePathStore = defineStore('pathStore', {
                 files,
             });
         },
-        setPath(path: string, fileMos: FileRa[]) {
+        setPath(path: string, fileMos: FileMo[]) {
             this.selected = path;
             this.columns = [];
             this.pushFiles(path, fileMos);
         },
-        addPath(path: string, fileMos: FileRa[]) {
+        addPath(path: string, fileMos: FileMo[]) {
             this.selected = path;
             this.pushFiles(path, fileMos);
         },
@@ -51,7 +51,7 @@ export const usePathStore = defineStore('pathStore', {
             }
         },
         /** 在指定列中添加文件 */
-        addFileInColumn(columnPath: string, file: FileRa) {
+        addFileInColumn(columnPath: string, file: FileMo) {
             for (const column of this.columns) {
                 if (column.path === columnPath) {
                     // 查找是否已存在
@@ -83,7 +83,7 @@ export interface Column {
     files: File[];
 }
 
-interface File extends FileRa {
+interface File extends FileMo {
     key: string;
 }
 

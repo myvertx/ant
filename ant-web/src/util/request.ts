@@ -3,10 +3,9 @@
  *
  * 给Vue实例提供 $request 属性，可以进行HTTP请求
  */
-import { App } from 'vue';
 import axios, { AxiosRequestConfig } from 'axios';
 import qs from 'qs';
-import { isSimulateNetDelay, requestBaseUrl, xHttpMethodOverride } from '@/env';
+import { simulateNetDelay, requestBasePath, xHttpMethodOverride } from '@/env';
 import { message } from 'ant-design-vue';
 import { Ro } from '@/ro/Ro';
 
@@ -36,7 +35,7 @@ const codeMessage: { [key: string]: string } = {
 
 // create an axios instance
 const instance = axios.create({
-    baseURL: requestBaseUrl, // request url = baseUrl + request config url
+    baseURL: requestBasePath, // request url = baseUrl + request config url
     // withCredentials: true, // send cookies when cross-domain requests
     timeout: 30000, // request timeout
 });
@@ -47,9 +46,9 @@ instance.interceptors.request.use(
         console.log('request config', config);
 
         // 是否模拟网络延迟
-        if (isSimulateNetDelay) {
+        if (simulateNetDelay > 0) {
             console.log('模拟网络延迟');
-            return new Promise((resolve) => setTimeout(() => resolve(config), 1000));
+            return new Promise((resolve) => setTimeout(() => resolve(config), simulateNetDelay));
         }
         // 默认参数序列化方法传递数组参数的时候会缺失索引
         config.paramsSerializer = {
@@ -87,7 +86,7 @@ export enum PromptMsg {
 }
 
 // 发出请求
-function request(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError): Promise<Ro> {
+function req(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError): Promise<Ro> {
     if (config.method?.toUpperCase() === 'GET' && config.data) {
         throw new Error('Axios的GET请求不能使用body传参，请将参数放入params属性而不是data');
     }
@@ -151,35 +150,21 @@ function request(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptErr
         });
 }
 
-function get(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
-    config.method = 'GET';
-    return request(config, promptMsg);
-}
-
-function post(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
-    config.method = 'POST';
-    return request(config, promptMsg);
-}
-
-function put(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
-    config.method = 'PUT';
-    return request(config, promptMsg);
-}
-
-function del(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
-    config.method = 'DELETE';
-    return request(config, promptMsg);
-}
-
-export default class VueRequest {
-    static install(app: App) {
-        console.log('安装插件 VueRequest');
-        console.log('注册Vue实例的属性 $request');
-        app.config.globalProperties.$request = {
-            get,
-            post,
-            put,
-            del,
-        };
-    }
-}
+export const request = {
+    get(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
+        config.method = 'GET';
+        return req(config, promptMsg);
+    },
+    post(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
+        config.method = 'POST';
+        return req(config, promptMsg);
+    },
+    put(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
+        config.method = 'PUT';
+        return req(config, promptMsg);
+    },
+    del(config: AxiosRequestConfig, promptMsg?: PromptMsg): Promise<Ro> {
+        config.method = 'DELETE';
+        return req(config, promptMsg);
+    },
+};

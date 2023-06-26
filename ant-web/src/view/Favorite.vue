@@ -1,40 +1,31 @@
 <script setup lang="ts">
-import { FileRa } from '@/ro/FileRa';
+import { FavoriteMo } from '@/mo/FavoriteMo';
+import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
-import { useFavoriteStore } from '@/store/FavoriteStore';
-import { usePathStore } from '@/store/PathStore';
-
-/** 当前组件实例 */
-const app = getCurrentInstance();
-/** 全局属性 */
-const globalProperties = app?.appContext.config.globalProperties;
-/** HTTP请求对象 */
-const request = globalProperties?.$request;
+import { useRemoteStore } from '@/store/RemoteStore';
+import { fileSvc } from '@/svc/FileSvc';
 
 // ****** 中央状态 ******
-// 收藏
-let { selected: selectedFavorite, selectListData } = $(useFavoriteStore());
-let { setPath } = $(usePathStore());
+// 远端
+let { favorites, curFavoriteIndex, selectFavorite } = $(useRemoteStore());
 
-/** 选择收藏事件 */
-function onSelect(item: { key: string }) {
-    const path = item.key;
-    // 发出get请求
-    request
-        ?.get({
-            url: '/ant/file/list',
-            params: { path },
-        })
+/**
+ * 选择收藏事件
+ * @param favorite 收藏的项目
+ * @param favoriteIndex 收藏项目的索引
+ */
+function onSelect(favorite: FavoriteMo, favoriteIndex: number) {
+    fileSvc
+        .list(favorite.path)
         // 处理返回的结果
         .then((ro: Ro) => {
             if (ro.result > 0) {
-                selectedFavorite = path;
-                setPath(path, ro.extra as FileRa[]);
+                selectFavorite(favoriteIndex, ro.extra as FileMo[]);
             }
         });
 }
 </script>
 
 <template>
-    <SelectList :selectedItemKey="selectedFavorite" :data="selectListData" @select="onSelect" />
+    <SelectList :selectedItemIndices="[curFavoriteIndex]" :data="favorites" @select="onSelect" />
 </template>

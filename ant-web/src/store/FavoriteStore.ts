@@ -4,6 +4,7 @@
 export const useFavoriteStore = defineStore('favoriteStore', {
     state: (): State => ({
         width: '100px',
+        /** 收藏的宽度 */
         selected: '/',
         list: [
             {

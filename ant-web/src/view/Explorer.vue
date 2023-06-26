@@ -1,54 +1,62 @@
 <script setup lang="ts">
-import { maxUploadings, uploadUrl } from '@/env';
-import { FileRa } from '@/ro/FileRa';
+import { maxUploadings } from '@/env';
+import { ColumnMo } from '@/mo/ColumnMo';
+import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
-import { useColumnWidthStore } from '@/store/ColumnWidthStore';
-import { Column, usePathStore } from '@/store/PathStore';
+import { useRemoteStore } from '@/store/RemoteStore';
 import { useUploadStore } from '@/store/UploadStore';
+import { fileSvc } from '@/svc/FileSvc';
+import { UPLOAD_FILE_URI } from '@/uri/FileUri';
 import { UploadOutlined } from '@ant-design/icons-vue';
 import { UploadChangeParam, message } from 'ant-design-vue';
 import { FileType } from 'ant-design-vue/lib/upload/interface';
 
-/** 当前组件实例 */
-const app = getCurrentInstance();
-/** 全局属性 */
-const globalProperties = app?.appContext.config.globalProperties;
-/** HTTP请求对象 */
-const request = globalProperties?.$request;
-
 // ****** 中央状态 ******
-// 收藏
-let { columns, addPath, clearColumn, addFileInColumn, selectFileInColumn } = $(usePathStore());
-let { get: getColumnWidth, set: setColumnWidth } = $(useColumnWidthStore());
+// 远端
+const {
+    curRemote,
+    columns,
+    getPathColumnWidth,
+    setPathColumnWidth,
+    clearColumnsAfterCurColumn,
+    setCurColumnIndex,
+    selectFiles,
+    selectDir,
+    addFileInColumn,
+} =
+    // 这里强制折行，否则格式化后会多一个逗号
+    $(useRemoteStore());
 let { fileList, cancelUpload } = $(useUploadStore());
 
-/** 选择文件事件 */
-function onSelect(item: { isDir: boolean; key: string }, columnKey: string) {
-    const filePath = item.key;
-    if (!item.isDir) {
-        clearColumn(columnKey);
-        selectFileInColumn(columnKey, filePath);
+/**
+ * 选择文件事件
+ * @param file 选择的文件
+ * @param fileIndex 选择的文件索引
+ * @param columnIndex 点击的列索引
+ */
+function onSelect(file: FileMo, fileIndex: number, columnIndex: number) {
+    // 设置当前列索引
+    setCurColumnIndex(columnIndex);
+    // 清空当前列之后的所有列
+    clearColumnsAfterCurColumn();
+    // 如果文件不是目录，选择文件
+    if (!file.isDir) {
+        selectFiles([fileIndex]);
         return;
     }
-
-    // 发出get请求
-    request
-        ?.get({
-            url: '/ant/file/list',
-            params: { path: filePath },
-        })
+    // 如果文件是目录，选择目录
+    fileSvc
+        .list(file.path)
         // 处理返回的结果
         .then((ro: Ro) => {
             if (ro.result > 0) {
-                clearColumn(columnKey);
-                addPath(filePath, ro.extra as FileRa[]);
-                selectFileInColumn(columnKey, filePath);
+                selectDir(fileIndex, ro.extra as FileMo[]);
             }
         });
 }
 
 /** 上传data参数 */
-function uploadData(file: FileType, column: Column) {
+function uploadData(file: FileType, column: ColumnMo) {
     console.log('uploadData', file);
     const fileNameWithDir = file.webkitRelativePath as string;
     let createDir = '';
@@ -113,14 +121,13 @@ function onUploadChange(info: UploadChangeParam) {
 </script>
 
 <template>
-    <template v-for="column in columns">
+    <template v-for="(column, columnIndex) in columns">
         <a-dropdown :trigger="['contextmenu']">
-            <div class="column" :style="{ flexBasis: getColumnWidth(column.path) || '200px' }">
+            <div class="column" :style="{ flexBasis: getPathColumnWidth(column.path) }">
                 <SelectList
-                    :componentKey="column.path"
-                    :selectedItemKey="column.selectedFile"
+                    :selectedItemIndices="column.selectedFileIndices"
                     :data="column.files"
-                    @select="onSelect"
+                    @select="(file: FileMo, fileIndex:number) => onSelect(file, fileIndex, columnIndex)"
                 />
             </div>
             <template #overlay>
@@ -131,7 +138,7 @@ function onUploadChange(info: UploadChangeParam) {
                             directory
                             :data="(file:FileType) => uploadData(file, column)"
                             :maxCount="maxUploadings"
-                            :action="uploadUrl"
+                            :action="curRemote.basePath + UPLOAD_FILE_URI"
                             :showUploadList="false"
                             @change="onUploadChange"
                         >
@@ -144,7 +151,7 @@ function onUploadChange(info: UploadChangeParam) {
                             v-model:file-list="fileList"
                             :data="(file:FileType) => uploadData(file, column)"
                             :maxCount="maxUploadings"
-                            :action="uploadUrl"
+                            :action="curRemote.basePath + UPLOAD_FILE_URI"
                             :showUploadList="false"
                             @change="onUploadChange"
                         >
@@ -154,7 +161,7 @@ function onUploadChange(info: UploadChangeParam) {
                 </a-menu>
             </template>
         </a-dropdown>
-        <Splitter @resized="(size:string) => setColumnWidth(column.path, size)" />
+        <Splitter @resized="(size:string) => setPathColumnWidth(column.path, size)" />
     </template>
 </template>
 
