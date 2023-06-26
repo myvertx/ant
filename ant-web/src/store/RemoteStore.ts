@@ -52,6 +52,7 @@ export const useRemoteStore = defineStore('remoteStore', {
         },
         /** 当前列列表 */
         columns(): ColumnMo[] {
+            if (!this.curRemote.columns) this.curRemote.columns = [];
             return this.curRemote.columns;
         },
         /** 当前列索引 */
@@ -135,6 +136,7 @@ export const useRemoteStore = defineStore('remoteStore', {
          * 清空当前列之后的所有列
          */
         clearColumnsAfterCurColumn() {
+            if (!this.columns) return;
             // ??? 这里不知道为什么用slice删除元素无效
             for (let i = this.columns.length - 1; i >= 0; i--) {
                 if (i === this.curColumnIndex) return;
