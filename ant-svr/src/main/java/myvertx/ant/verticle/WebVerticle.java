@@ -36,6 +36,7 @@ public class WebVerticle extends AbstractWebVerticle {
 
     @Override
     protected void configRouter(final Router router) {
+        // 查询指定路径的文件列表
         router.get("/ant/file/list")
                 .handler(ctx -> {
                     final HttpServerResponse response = ctx.response();
