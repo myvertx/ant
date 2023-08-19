@@ -9,7 +9,7 @@ const { curRemote, curColumnPath } =
     // 这里强制折行，否则格式化后会多一个逗号
     $(useRemoteStore());
 // 上传
-let { tasks, addTask, cancelTask } = $(useUploadStore());
+let { runTasks, addTask, cancelTask } = $(useUploadStore());
 
 // ****** 局部状态 ******
 // file input dom
@@ -41,10 +41,8 @@ const {
  */
 function openDialog(isDir: boolean) {
     isUploadDir = isDir;
-    nextTick(() => {
-        fileInputRef.webkitdirectory = isDir ? true : false;
-        fileInputRef.click();
-    });
+    fileInputRef.webkitdirectory = isDir ? true : false;
+    fileInputRef.click();
 }
 defineExpose({
     openDialog,
@@ -54,15 +52,19 @@ defineExpose({
 /**
  * 打开对话框选择文件确认后触发的事件
  */
-function onChange(e: HTMLInputElement) {
-    console.log(e);
-    const files = fileInputRef.files as FileList;
+function onChange() {
+    let files = fileInputRef.files as FileList;
     console.log(files);
-    addTask(curRemote.basePath + UPLOAD_FILE_URI, curColumnPath, files);
+    addTask(curRemote.name, curColumnPath, curRemote.basePath + UPLOAD_FILE_URI, files);
+    // 清空上次上传的文件，否则如果再上传同一个文件就不会触发onChange事件
+    fileInputRef.value = '';
 }
 
 // ****** 暴露事件 ******
 // const emit = defineEmits(['onChange']);
+
+// 定时运行任务
+runTasks();
 </script>
 <template>
     <input ref="fileInputRef" type="file" :name="name" :multiple="multiple" @change="onChange" />

@@ -4,15 +4,11 @@ import { ColumnMo } from '@/mo/ColumnMo';
 import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
 import { useRemoteStore } from '@/store/RemoteStore';
-import { useUploadStore } from '@/store/UploadStore';
 import { fileSvc } from '@/svc/FileSvc';
-import { UPLOAD_FILE_URI } from '@/uri/FileUri';
-import { Upload } from '@element-plus/icons-vue';
+import { Upload, Refresh } from '@element-plus/icons-vue';
 import UploadFile from '@/component/UploadFile.vue';
 // import { UploadChangeParam, message } from 'ant-design-vue';
 // import { FileType } from 'ant-design-vue/lib/upload/interface';
-import { ArrowDown, Check, CircleCheck, CirclePlus, CirclePlusFilled, Plus } from '@element-plus/icons-vue';
-import { InputInstance, UploadUserFile } from 'element-plus';
 // import message from 'element-plus/es/components/message/index.js';
 // import { column } from 'element-plus/es/components/table-v2/src/common.js';
 
@@ -22,10 +18,7 @@ const uploadRef = $ref<InstanceType<typeof UploadFile>>() as unknown as typeof U
 // ****** 中央状态 ******
 // 远端
 const {
-    curRemote,
     columns,
-    curColumn,
-    // curColumnPath,
     curColumnIndex,
     getPathColumnWidth,
     setPathColumnWidth,
@@ -33,7 +26,7 @@ const {
     setCurColumnIndex,
     selectFiles,
     selectDir,
-    addFileInColumn,
+    refreshCurColmn,
 } =
     // 这里强制折行，否则格式化后会多一个逗号
     $(useRemoteStore());
@@ -173,6 +166,10 @@ function onSelect(file: FileMo, fileIndex: number) {
         </v-contextmenu-item>
         <v-contextmenu-item @click="uploadRef.openDialog(false)">
             <el-icon><Upload /></el-icon><span>上传文件</span>
+        </v-contextmenu-item>
+        <v-contextmenu-divider />
+        <v-contextmenu-item @click="refreshCurColmn">
+            <el-icon><Refresh /></el-icon><span>刷新当前列</span>
         </v-contextmenu-item>
     </v-contextmenu>
 

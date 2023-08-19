@@ -15,6 +15,7 @@ Object.values(modules).forEach((module) => {
 });
 
 // 全局注册右键弹出菜单
+// @ts-ignore
 import contextmenu from 'v-contextmenu';
 app.use(contextmenu);
 

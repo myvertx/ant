@@ -1,7 +1,7 @@
 import { Ro } from '@/ro/Ro';
 
 import { useRemoteStore } from '@/store/RemoteStore';
-import { LIST_FILE_URI, UPLOAD_FILE_URI } from '@/uri/FileUri';
+import { LIST_FILE_URI } from '@/uri/FileUri';
 import { request } from '@/util/request';
 
 export const fileSvc = {
@@ -17,15 +17,20 @@ export const fileSvc = {
             params: { path },
         });
     },
-    // upload(file: File) {
-    //     let { curRemote, curColumnPath } = $(useRemoteStore());
-    //     // 发出get请求
-    //     return request.post({
-    //         url: curRemote.basePath + UPLOAD_FILE_URI,
-    //         headers: {
-    //             'Content-Type': 'multipart/form-data',
-    //         },
-    //         params: { curColumnPath },
-    //     });
-    // },
+    /**
+     * 上传文件
+     * @param url 上传的地址
+     * @param controller 上传控制器
+     * @param formData 上传的数据
+     */
+    upload(url: string, controller: AbortController, formData: FormData): Promise<Ro> {
+        return request.post({
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+            url,
+            signal: controller.signal,
+            data: formData,
+        });
+    },
 };

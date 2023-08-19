@@ -17,6 +17,7 @@
         "@element-plus/icons-vue": "^2.1.0",
         "@vueuse/core": "^10.3.0",
         "axios": "^1.4.0",
+        "crypto-js": "^4.1.1",
         "element-plus": "^2.3.9",
         "pinia": "^2.1.6",
         "pinia-plugin-persistedstate": "^3.2.0",
@@ -26,6 +27,7 @@
         "vue": "^3.3.4"
     },
     "devDependencies": {
+        "@types/crypto-js": "^4.1.1",
         "@types/node": "^20.4.9",
         "@types/qs": "^6.9.7",
         "@vitejs/plugin-vue": "^4.2.3",

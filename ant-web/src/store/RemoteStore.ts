@@ -4,6 +4,8 @@ import { FavoriteMo } from '@/mo/FavoriteMo';
 import { FileMo } from '@/mo/FileMo';
 import { PathColumnWidthMo } from '@/mo/PathColumnWidthMo';
 import { RemoteMo } from '@/mo/RemoteMo';
+import { Ro } from '@/ro/Ro';
+import { fileSvc } from '@/svc/FileSvc';
 
 // 从环境变量中初始化远端列表
 const remotes: RemoteMo[] = [];
@@ -19,7 +21,7 @@ remotes.push(...requestRemotes);
 export const useRemoteStore = defineStore('remoteStore', {
     state: (): State => ({
         curRemoteIndex: 0,
-        remotes: remotes,
+        remotes,
     }),
     getters: {
         /** 当前远端 */
@@ -144,19 +146,71 @@ export const useRemoteStore = defineStore('remoteStore', {
             }
         },
         /**
+         * 刷新当前列
+         */
+        refreshCurColmn() {
+            this.refreshColmnByIndex(this.curColumnIndex);
+        },
+        /**
+         * 刷新路径匹配的列
+         */
+        refreshColmnByPath(remoteName: string, columnPath: string) {
+            console.log('remoteName', remoteName, 'columnPath', columnPath);
+            if (this.curRemote.name !== remoteName) return;
+            const column = this.getColumnByPath(columnPath) as ColumnMo;
+            console.log('column', column);
+            this.refreshColmn(column);
+        },
+        /**
+         * 刷新指定列
+         * @param columnIndex 指定列的索引
+         */
+        refreshColmnByIndex(columnIndex: number) {
+            this.refreshColmn(this.columns[columnIndex]);
+        },
+        /**
+         * 刷新指定列
+         * @param column 指定列
+         */
+        refreshColmn(column: ColumnMo) {
+            fileSvc
+                .list(column.path)
+                // 处理返回的结果
+                .then((ro: Ro) => {
+                    if (ro.result > 0) {
+                        // 记录下刷新前选择的文件，供刷新后重新选择
+                        const selectedFilePaths = [];
+                        for (let i = 0; i < column.selectedFileIndices.length; i++) {
+                            selectedFilePaths.push(column.files[column.selectedFileIndices[i]].path);
+                        }
+
+                        // 开始刷新
+                        let files = ro.extra as FileMo[];
+                        files = this.orderFiles(files);
+                        column.files = files;
+
+                        // 清除选择文件
+                        this.clearSelecteFiles(column);
+                        // 重新选择文件
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            for (const filePath of selectedFilePaths) {
+                                if (file.path === filePath) {
+                                    column.selectedFileIndices.push(i);
+                                }
+                            }
+                        }
+                    }
+                });
+        },
+
+        /**
          * 添加新的列
          * @param path 新列的路径
          * @param files 新列的文件列表
          */
         addColumn(path: string, files: FileMo[]) {
-            files.sort((a: FileMo, b: FileMo) => {
-                if (a.isDir && !b.isDir) {
-                    return -1;
-                } else if (!a.isDir && b.isDir) {
-                    return 1;
-                }
-                return a.name > b.name ? 1 : -1;
-            });
+            files = this.orderFiles(files);
             this.columns.push({
                 path,
                 files,
@@ -167,8 +221,15 @@ export const useRemoteStore = defineStore('remoteStore', {
          * 清空指定列中选择的文件
          * @param columnIndex 指定列的索引
          */
-        clearSelecteFiles(columnIndex: number) {
-            this.columns[columnIndex].selectedFileIndices = [];
+        clearSelecteFilesByIndex(columnIndex: number) {
+            this.clearSelecteFiles(this.columns[columnIndex]);
+        },
+        /**
+         * 清空指定列中选择的文件
+         * @param columnIndex 指定列的索引
+         */
+        clearSelecteFiles(column: ColumnMo) {
+            column.selectedFileIndices = [];
         },
         /**
          * 选择目录
@@ -186,6 +247,20 @@ export const useRemoteStore = defineStore('remoteStore', {
          */
         selectFiles(fileIndies: number[]) {
             this.curColumn.selectedFileIndices = fileIndies;
+        },
+        /**
+         * 排序文件
+         * @param files 要排序的文件列表
+         */
+        orderFiles(files: FileMo[]): FileMo[] {
+            return files.sort((a: FileMo, b: FileMo) => {
+                if (a.isDir && !b.isDir) {
+                    return -1;
+                } else if (!a.isDir && b.isDir) {
+                    return 1;
+                }
+                return a.name > b.name ? 1 : -1;
+            });
         },
         /** 在指定列中添加文件 */
         addFileInColumn(columnPath: string, file: FileMo) {
