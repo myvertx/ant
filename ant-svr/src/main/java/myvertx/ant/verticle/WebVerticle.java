@@ -69,9 +69,13 @@ public class WebVerticle extends AbstractWebVerticle {
                         response.end(Json.encode(Vro.warn("读取路径失败", e.getMessage())));
                     }
                 });
+
+        // 文件是否存在
+
+
+        // 上传文件
         BodyHandler bodyHandler = BodyHandler.create()
                 .setUploadsDirectory(rootPath);
-//                .setMergeFormAttributes(true);
         if (uploadFileSizeLimit != 0) {
             bodyHandler.setBodyLimit(uploadFileSizeLimit);
         }
@@ -83,7 +87,7 @@ public class WebVerticle extends AbstractWebVerticle {
 
                     MultiMap formAttributes = ctx.request().formAttributes();
                     log.debug("formAttributes: {}", formAttributes);
-                    String           fileDir     = formAttributes.get("fileDir");
+                    String           sDstDir     = formAttributes.get("dstDir");
                     String           createDir   = formAttributes.get("createDir");
                     List<FileUpload> fileUploads = ctx.fileUploads();
                     FileUpload       fileUpload  = fileUploads.get(0);
@@ -110,10 +114,17 @@ public class WebVerticle extends AbstractWebVerticle {
                     Path srcPath = Path.of(fileUpload.uploadedFileName());
                     // 是否创建目录
                     if (StringUtils.isNotBlank(createDir)) {
-                        fileDir += File.separator + createDir;
+                        sDstDir += File.separator + createDir;
                     }
                     // 目的地目录
-                    Path dstDir = Path.of(rootPath, fileDir);
+                    Path dstDir = Path.of(rootPath, sDstDir);
+                    // 目的地文件路径
+                    Path   dstFilePath = Path.of(dstDir.toString(), fileUpload.fileName());
+                    String dstPathStr  = dstFilePath.toString();
+                    String baseName    = FilenameUtils.removeExtension(dstPathStr);
+                    String extension   = FilenameUtils.getExtension(dstPathStr);
+                    // 目的地目录
+                    dstDir = dstFilePath.getParent();
                     // 如果目录不存在则创建
                     if (Files.notExists(dstDir)) {
                         try {
@@ -130,20 +141,15 @@ public class WebVerticle extends AbstractWebVerticle {
                             return;
                         }
                     }
-                    // 目的地
-                    Path   dstPath    = Path.of(dstDir.toString(), fileUpload.fileName());
-                    String dstPathStr = dstPath.toString();
-                    String baseName   = FilenameUtils.removeExtension(dstPathStr);
-                    String extension  = FilenameUtils.getExtension(dstPathStr);
-                    int    i          = 0;
-                    while (Files.exists(dstPath)) {
+                    int i = 0;
+                    while (Files.exists(dstFilePath)) {
                         i++;
-                        dstPath = Path.of(baseName + "(" + i + ")." + extension);
+                        dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
                     }
-                    log.debug("remove: {} -> {}", srcPath, dstPath);
+                    log.debug("remove: {} -> {}", srcPath, dstFilePath);
                     try {
                         Files.move(srcPath,
-                                dstPath,
+                                dstFilePath,
                                 StandardCopyOption.ATOMIC_MOVE);
                     } catch (IOException e) {
                         String msg = "文件上传后移动出错";
@@ -157,9 +163,9 @@ public class WebVerticle extends AbstractWebVerticle {
                         return;
                     }
                     response.end(Json.encode(Vro.success("文件上传成功", UploadRa.builder()
-                            .fileDir(fileDir)
-                            .fileName(dstPath.getFileName().toString())
-                            .fileFullPath(dstPath.toString())
+                            .fileDir(sDstDir)
+                            .fileName(dstFilePath.getFileName().toString())
+                            .fileFullPath(dstFilePath.toString())
                             .build())));
                 });
     }
