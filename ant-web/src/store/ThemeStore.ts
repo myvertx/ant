@@ -3,16 +3,16 @@
 // 第一个参数是你的应用中 Store 的唯一 ID。
 export const useThemeStore = defineStore('themeStore', {
     state: (): State => ({
-        curTheme: 'dark',
+        isDark: true,
     }),
     persist: true,
 });
 
 interface State {
     /**
-     * 当前主题
+     * 是否暗黑模式
      */
-    curTheme: string;
+    isDark: boolean;
 }
 
 if (import.meta.hot) {

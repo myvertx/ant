@@ -1,0 +1,30 @@
+// 右键弹出菜单的默认主题
+@use 'v-contextmenu/dist/themes/default.css';
+
+// 标题栏的背景色
+$bg-color-title: darken(white, 16%);
+// 导航菜单的背景色
+$bg-color-nav: darken(white, 10%);
+// 基础区域的背景色
+$bg-color-base: darken(white, 6%);
+// 分隔线的背景色
+$bg-color-spliter: darken(white, 10%);
+
+// 正常时候的字体颜色
+$color-base: lighten(black, 20%);
+// 鼠标移到项目上方时的字体颜色
+$color-hover: black;
+
+// 项目正常时候的字体颜色
+$item-color: $color-base;
+// 鼠标移到项目上方时的字体颜色
+$item-hover-color: $color-hover;
+// 项目被选择时的背景色
+$item-selected-bg-color: darken(white, 16%);
+// 项目被激活时的背景色
+$item-actived-bg-color: darken(white, 20%);
+
+// 图标正常时候的字体颜色
+$icon-color-base: $color-base;
+// 鼠标移到图标上方时的字体颜色
+$icon-color-hover: $color-hover;

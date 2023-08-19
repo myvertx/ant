@@ -6,7 +6,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import qs from 'qs';
 import { simulateNetDelay, requestBasePath, xHttpMethodOverride } from '@/env';
-import { message } from 'ant-design-vue';
 import { Ro } from '@/ro/Ro';
 
 const codeMessage: { [key: string]: string } = {
@@ -71,7 +70,7 @@ instance.interceptors.request.use(
         // do something with request error
         console.log('request error', error); // for debug
         const msg = codeMessage['ECONNABORTED'];
-        message.error('msg', 5);
+        ElMessage.error({ message: msg, duration: 5000 });
         return Promise.reject({ result: 0, msg });
     },
 );
@@ -103,15 +102,15 @@ function req(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError):
                 if (ro.msg) {
                     // 成功
                     if (ro.result > 0) {
-                        if (promptMsg === PromptMsg.PromptMsg) message.success(ro.msg);
+                        if (promptMsg === PromptMsg.PromptMsg) ElMessage.success({ message: ro.msg });
                     }
                     // 警告
                     else if (ro.result !== -2) {
-                        if (promptMsg !== PromptMsg.None) message.warning(ro.msg, 5);
+                        if (promptMsg !== PromptMsg.None) ElMessage.warning({ message: ro.msg, duration: 5000 });
                     }
                     // 失败
                     else {
-                        if (promptMsg !== PromptMsg.None) message.error(ro.msg, 5);
+                        if (promptMsg !== PromptMsg.None) ElMessage.error({ message: ro.msg, duration: 5000 });
                     }
                     return ro;
                 }
@@ -130,7 +129,7 @@ function req(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError):
                 '未知错误:' + err;
 
             if (promptMsg !== PromptMsg.None) {
-                message.error(msg, 5);
+                ElMessage.error({ message: msg, duration: 5000 });
             }
 
             if (err.response && err.response.status) {

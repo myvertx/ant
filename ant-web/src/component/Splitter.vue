@@ -36,13 +36,13 @@ function startResize(mde: MouseEvent) {
     ></div>
 </template>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .splitter {
     /** 不缩小 */
     flex-shrink: 0;
     /** 不换行 */
     white-space: nowrap;
-    background-color: @background-color-light;
+    background-color: $bg-color-spliter;
     position: relative;
     &::before {
         content: '';

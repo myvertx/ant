@@ -1,6 +1,5 @@
 import App from './App.vue';
-// import 'ant-design-vue/es/message/style/css';
-import './style.less';
+import './style.scss';
 import { ModuleNamespace } from 'node_modules/vite/types/hot';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
@@ -14,5 +13,9 @@ const modules = import.meta.glob('@/plugin/*.ts', { eager: true });
 Object.values(modules).forEach((module) => {
     app.use((module as ModuleNamespace).default);
 });
+
+// 全局注册右键弹出菜单
+import contextmenu from 'v-contextmenu';
+app.use(contextmenu);
 
 app.mount('#app');

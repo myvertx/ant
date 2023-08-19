@@ -1,7 +1,7 @@
 import { Ro } from '@/ro/Ro';
 
 import { useRemoteStore } from '@/store/RemoteStore';
-import { LIST_FILE_URI } from '@/uri/FileUri';
+import { LIST_FILE_URI, UPLOAD_FILE_URI } from '@/uri/FileUri';
 import { request } from '@/util/request';
 
 export const fileSvc = {
@@ -17,4 +17,15 @@ export const fileSvc = {
             params: { path },
         });
     },
+    // upload(file: File) {
+    //     let { curRemote, curColumnPath } = $(useRemoteStore());
+    //     // 发出get请求
+    //     return request.post({
+    //         url: curRemote.basePath + UPLOAD_FILE_URI,
+    //         headers: {
+    //             'Content-Type': 'multipart/form-data',
+    //         },
+    //         params: { curColumnPath },
+    //     });
+    // },
 };

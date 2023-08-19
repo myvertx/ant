@@ -1,0 +1,39 @@
+// 标题栏的背景色
+$bg-color-title: lighten(black, 24%);
+// 导航菜单的背景色
+$bg-color-nav: lighten(black, 16%);
+// 基础区域的背景色
+$bg-color-base: lighten(black, 12%);
+// 分隔线的背景色
+$bg-color-spliter: lighten(black, 16%);
+
+// 正常时候的字体颜色
+$color-base: darken(white, 10%);
+// 鼠标移到项目上方时的字体颜色
+$color-hover: darken(white, 16%);;
+
+// 项目正常时候的字体颜色
+$item-color: $color-base;
+// 鼠标移到项目上方时的字体颜色
+$item-hover-color: $color-hover;
+// 项目被选择时的背景色
+$item-selected-bg-color: lighten(black, 24%);
+// 项目被激活时的背景色
+$item-actived-bg-color: lighten(black, 36%);
+
+// 图标正常时候的字体颜色
+$icon-color-base: $color-base;
+// 鼠标移到图标上方时的字体颜色
+$icon-color-hover: $color-hover;
+
+// 右键弹出菜单的暗黑主题
+// .wrapper {
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     width: 300px;
+//     height: 200px;
+//     border: 3px dashed rgba(90, 167, 164, 0.9);
+//     border-radius: 8px;
+//     background-color: rgba(90, 167, 164, 0.2);
+// }

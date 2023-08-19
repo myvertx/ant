@@ -27,5 +27,5 @@ function onSelect(favorite: FavoriteMo, favoriteIndex: number) {
 </script>
 
 <template>
-    <SelectList :selectedItemIndices="[curFavoriteIndex]" :data="favorites" @select="onSelect" />
+    <SelectList :isActived="false" :selectedItemIndices="[curFavoriteIndex]" :data="favorites" @select="onSelect" />
 </template>

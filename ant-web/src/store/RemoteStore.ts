@@ -65,7 +65,7 @@ export const useRemoteStore = defineStore('remoteStore', {
         },
         /** 当前列路径 */
         curColumnPath(): string {
-            return this.curColumn.path;
+            return this.curColumn?.path;
         },
         /** 路径列宽度列表 */
         pathColumnWidths(): PathColumnWidthMo[] {

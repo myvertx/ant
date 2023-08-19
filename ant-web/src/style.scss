@@ -1,0 +1,61 @@
+// element内置暗黑主题
+@use 'element-plus/theme-chalk/src/dark/css-vars.scss' as *;
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', Segoe UI Symbol, 'Noto Color Emoji', 'Microsoft YaHei', '微软雅黑',
+        'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+#app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/**
+ * element plus的el-progress组件的这个样式设置了 min-width: 50px
+ * 导致宽度小于50px的圆里面的字不能水平居中，取消此设置解决此问题
+ */
+.el-progress__text {
+    min-width: unset;
+}
+
+html.dark {
+    // 右键弹出菜单的暗黑主题
+    .v-contextmenu {
+        border-color: #444;
+        background-color: #444;
+        // box-shadow: 2px 2px 8px 0px rgba(#000, 0.2);
+
+        &-item {
+            color: rgba(#fff, 0.9);
+
+            &--hover {
+                background-color: rgba(#666, 0.9);
+            }
+
+            &--disabled {
+                color: rgba(#888, 0.9);
+            }
+        }
+
+        &-divider {
+            border-bottom-color: rgba(#fff, 0.6);
+        }
+
+        &-group__title {
+            color: rgba(#fff, 0.7);
+        }
+    }
+}
