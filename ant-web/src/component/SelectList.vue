@@ -34,7 +34,7 @@ function onClick(item: Item, index: number) {
                 class="item"
                 :class="{
                     selected: !isActived && selectedItemIndices && selectedItemIndices.indexOf(index) > -1,
-                    actived: isActived && selectedItemIndices && selectedItemIndices.indexOf(index) > -1,
+                    'item-actived': isActived && selectedItemIndices && selectedItemIndices.indexOf(index) > -1,
                 }"
             >
                 <div class="icon-left" v-if="item.isDir !== undefined">
@@ -85,7 +85,7 @@ $item-height: 24px;
     .selected {
         background-color: $item-selected-bg-color;
     }
-    .actived {
+    .item-actived {
         background-color: $item-actived-bg-color;
     }
 }

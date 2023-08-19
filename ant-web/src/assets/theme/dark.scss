@@ -1,11 +1,13 @@
 // 标题栏的背景色
-$bg-color-title: lighten(black, 24%);
+$bg-color-title: lighten(black, 28%);
 // 导航菜单的背景色
-$bg-color-nav: lighten(black, 16%);
+$bg-color-nav: lighten(black, 24%);
 // 基础区域的背景色
-$bg-color-base: lighten(black, 12%);
+$bg-color-base: lighten(black, 16%);
+// 激活区域的背景色
+$bg-color-actived: lighten(black, 12%);
 // 分隔线的背景色
-$bg-color-spliter: lighten(black, 16%);
+$bg-color-spliter: lighten(black, 20%);
 
 // 正常时候的字体颜色
 $color-base: darken(white, 10%);

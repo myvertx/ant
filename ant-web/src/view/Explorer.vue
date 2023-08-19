@@ -176,28 +176,14 @@ function onSelect(file: FileMo, fileIndex: number) {
         </v-contextmenu-item>
     </v-contextmenu>
 
-    <!-- <el-dialog v-model="uploadDialogVisible" :title="'上传' + (isUploadDir ? '文件夹' : '文件')">
-        <el-upload
-            drag
-            multiple
-            :limit="maxUploadings"
-            v-model:file-list="uploadFileList"
-            :data="uploadData()"
-            :action="curRemote.basePath + UPLOAD_FILE_URI"
-        >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">Drop file here or <em>click to upload</em></div>
-            <template #tip>
-                <div class="el-upload__tip">上传服务器路径: {{ curColumnPath }}</div>
-            </template>
-        </el-upload>
-    </el-dialog> -->
-
     <UploadFile ref="uploadRef" v-show="false" />
 
     <template v-for="(column, columnIndex) in columns">
         <div
             class="column"
+            :class="{
+                'column-actived': curColumnIndex == columnIndex,
+            }"
             :style="{ flexBasis: getPathColumnWidth(column.path) }"
             v-contextmenu:contextmenu
             @mouseup.native="setCurColumnIndex(columnIndex)"
@@ -264,13 +250,9 @@ function onSelect(file: FileMo, fileIndex: number) {
     flex-shrink: 0;
     /** 不换行 */
     white-space: nowrap;
-    // .el-dropdown {
-    //     width: 100%;
-    //     // height: 100%;
-    //     .el-tooltip__trigger {
-    //         width: 100%;
-    //     }
-    // }
+}
+.column-actived {
+    background-color: $bg-color-actived;
 }
 .v-contextmenu {
     .v-contextmenu-item {
@@ -284,13 +266,4 @@ function onSelect(file: FileMo, fileIndex: number) {
         padding: 5px 14px 5px 5px;
     }
 }
-// .upload-dir {
-//     margin: -10px -10px;
-//     padding: 10px 10px;
-// }
-// .upload-file {
-//     margin: -10px -25px -10px -10px;
-//     padding: 10px 25px 10px 10px;
-// }
-//
 </style>
