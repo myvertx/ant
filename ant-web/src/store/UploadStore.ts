@@ -36,13 +36,13 @@ export const useUploadStore = defineStore('uploadStore', {
             for (const task of state.tasks) {
                 for (const uploadFile of task.uploadFiles) {
                     if (uploadFile.status in [UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading]) {
-                        total += uploadFile.file.size;
+                        total += uploadFile.size;
                     }
                 }
             }
 
             // 平均求总进度
-            return uploadedSum / total;
+            return total ? uploadedSum / total : 100;
         },
     },
     actions: {
@@ -89,6 +89,7 @@ export const useUploadStore = defineStore('uploadStore', {
             for (const file of files) {
                 uploadFiles.push({
                     id: ulid(),
+                    size: file.size,
                     remoteName,
                     dstDir,
                     status: UploadStatus.Preparing,
@@ -239,7 +240,7 @@ interface State {
 }
 
 /** 上传任务 */
-interface UploadTask {
+export interface UploadTask {
     /** 上传任务ID */
     id: string;
     /** 上传任务文件列表 */
@@ -247,9 +248,11 @@ interface UploadTask {
 }
 
 /** 上传任务中的文件 */
-interface UploadFile {
+export interface UploadFile {
     /** 上传文件ID */
     id: string;
+    /** 上传文件的大小(单位是字节) */
+    size: number;
     /** 上传文件hash */
     hash?: string;
     /** 上传的状态 */
@@ -264,7 +267,7 @@ interface UploadFile {
     file: File;
 }
 
-interface UploadingFile {
+export interface UploadingFile {
     /** 上传文件ID */
     id: string;
     /** 上传进度(0-100) */
@@ -278,7 +281,7 @@ interface UploadingFile {
 }
 
 /** 上传状态 */
-enum UploadStatus {
+export enum UploadStatus {
     /** 取消上传 */
     Cancel,
     /** 正在准备 */

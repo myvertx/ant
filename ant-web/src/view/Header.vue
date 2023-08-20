@@ -3,7 +3,7 @@
 import { toggleTheme } from '@zougt/vite-plugin-theme-preprocessor/dist/browser-utils';
 import { CircleClose } from '@element-plus/icons-vue';
 import { useDark, useToggle } from '@vueuse/core';
-import { byteConvert } from '@/util/comm';
+import { byteConvert, formatPercent } from '@/util/comm';
 
 import { useThemeStore } from '@/store/ThemeStore';
 import { useUploadStore } from '@/store/UploadStore';
@@ -22,11 +22,6 @@ watch(useDark(), (newValue) => {
     toggleTheme({ scopeName: isDark ? 'dark' : 'default' });
 });
 const toggleDark = useToggle(useDark());
-
-/** 格式化百分比 */
-function formatPercent(percent: number) {
-    return percent.toFixed(2) + '%';
-}
 </script>
 
 <template>
@@ -39,33 +34,33 @@ function formatPercent(percent: number) {
                 </el-radio-button>
             </el-radio-group>
         </div>
-        <!-- <el-popover title="文件上传进度" width="500" v-if="fileList.length > 0" placement="bottom-end">
+        <el-popover title="文件上传进度" width="500" v-if="tasks.length > 0" placement="bottom-end">
             <template #reference>
                 <el-progress class="upload-progress" type="circle" :percentage="percent" :width="40" />
             </template>
-            <div class="upload-file" v-for="file in tasks">
+            <div class="upload-file" v-for="task in tasks">
                 <UploadFileIcon class="upload-file-icon" />
                 <div class="detail">
-                    <div class="file-name">{{ file.name }}</div>
-                    <el-progress size="small" :percentage="file.percent" :format="formatPercent" />
+                    <div class="file-name">{{ task.name }}</div>
+                    <el-progress size="small" :percentage="task.percent" :format="formatPercent" />
                     <div class="file-status">
-                        <span v-if="file.status === 'ready'">准备中</span>
-                        <span v-else-if="file.status === 'uploading'">上传中</span>
-                        <span v-else-if="file.status === 'success'">已完成</span>
-                        <span v-else-if="file.status === 'fail'" class="err">
-                            错误: {{ file.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
+                        <span v-if="task.status === 'ready'">准备中</span>
+                        <span v-else-if="task.status === 'uploading'">上传中</span>
+                        <span v-else-if="task.status === 'success'">已完成</span>
+                        <span v-else-if="task.status === 'fail'" class="err">
+                            错误: {{ task.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
                         </span>
                         <span v-else class="err">未知状态</span>
-                        <span>---- {{ byteConvert(file.size || 0) }}</span>
+                        <span>---- {{ byteConvert(task.size || 0) }}</span>
                     </div>
                 </div>
-                <el-tooltip content="取消上传" v-if="file.status !== 'success' && file.status !== 'fail'">
+                <el-tooltip content="取消上传" v-if="task.status !== 'success' && task.status !== 'fail'">
                     <div>
                         <el-popconfirm
                             title="你是否要取消该文件的上传?"
                             confirm-button-text="是"
                             cancel-button-text="否"
-                            @confirm="cancelUpload(file)"
+                            @confirm="cancelUpload(task)"
                         >
                             <template #reference>
                                 <el-icon class="action-icon">
@@ -76,7 +71,7 @@ function formatPercent(percent: number) {
                     </div>
                 </el-tooltip>
             </div>
-        </el-popover> -->
+        </el-popover>
         <el-tooltip content="切换主题">
             <div class="toggle-theme">
                 <el-switch
