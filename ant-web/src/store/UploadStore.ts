@@ -2,6 +2,7 @@
 
 import { useRemoteStore } from './RemoteStore.ts';
 import { fileSvc } from '@/svc/FileSvc';
+import { AxiosProgressEvent } from 'axios';
 // @ts-ignore
 import sha256 from 'crypto-js/sha256';
 import { ulid } from 'ulid';
@@ -24,15 +25,24 @@ export const useUploadStore = defineStore('uploadStore', {
     getters: {
         /** 所有文件上传的平均进度 */
         percent(state: State) {
-            let sum = 0;
-            let count = 0;
+            // 计算已上传的总字节数
+            let uploadedSum = 0;
+            for (const loadingFile of state.uploadingFiles) {
+                uploadedSum += loadingFile.loaded || 0;
+            }
+
+            // 计算总共要上传的字节数
+            let total = 0;
             for (const task of state.tasks) {
                 for (const uploadFile of task.uploadFiles) {
-                    sum += uploadFile.percent || 0;
-                    count++;
+                    if (uploadFile.status in [UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading]) {
+                        total += uploadFile.file.size;
+                    }
                 }
             }
-            return sum / count;
+
+            // 平均求总进度
+            return uploadedSum / total;
         },
     },
     actions: {
@@ -46,13 +56,13 @@ export const useUploadStore = defineStore('uploadStore', {
                 for (const uploadFile of task.uploadFiles) {
                     if (!uploadFile.hash) {
                         const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const hash = sha256(e.target?.result).toString();
-                            console.log('hash', hash);
+                        reader.onload = () => {
+                            const result = new Uint8Array(reader.result as ArrayBuffer);
+                            const hash = sha256(result).toString();
                             uploadFile.hash = hash;
                             uploadFile.status = UploadStatus.Ready;
                         };
-                        reader.readAsBinaryString(uploadFile.file);
+                        reader.readAsArrayBuffer(uploadFile.file);
                     }
                 }
             }
@@ -81,7 +91,6 @@ export const useUploadStore = defineStore('uploadStore', {
                     id: ulid(),
                     remoteName,
                     dstDir,
-                    percent: 0,
                     status: UploadStatus.Preparing,
                     url,
                     file,
@@ -177,18 +186,25 @@ export const useUploadStore = defineStore('uploadStore', {
             uploadFile.status = UploadStatus.Uploading;
             // 上传控制器
             const controller = new AbortController();
+            const uploadingFile: UploadingFile = { id: uploadFile.id, controller, loaded: 0, percent: 0, rate: 0 };
             // 添加到上传中的文件ID列表
-            this.uploadingFiles.push({ id: uploadFile.id, controller });
+            this.uploadingFiles.push(uploadingFile);
             // 配置上传的数据
             const formData = new FormData();
             formData.append('id', uploadFile.id);
             formData.append('dstDir', uploadFile.dstDir);
             formData.append('hash', uploadFile.hash as string);
             formData.append('file', uploadFile.file);
+            // 上传进度改变事件
+            const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                console.log('progressEvent', progressEvent);
+                uploadingFile.loaded = progressEvent.loaded;
+                uploadingFile.percent = (progressEvent.progress as number) * 100;
+                uploadingFile.rate = progressEvent.rate as number;
+            };
             // 上传
             fileSvc
-                .upload(uploadFile.url, controller, formData)
-
+                .upload(uploadFile.url, controller, formData, onUploadProgress)
                 .then((ro) => {
                     if (ro.result > 0) {
                         this.uploadSuccess(uploadFile);
@@ -240,12 +256,10 @@ interface UploadFile {
     status: UploadStatus;
     /** 远端名称 */
     remoteName: string;
-    /** 上传目的地的目录 */
+    /** 上传目的地的目录(也是列路径) */
     dstDir: string;
     /** 上传的url */
     url: string;
-    /** 上传进度(0-100) */
-    percent: number;
     /** 上传文件信息 */
     file: File;
 }
@@ -253,6 +267,12 @@ interface UploadFile {
 interface UploadingFile {
     /** 上传文件ID */
     id: string;
+    /** 上传进度(0-100) */
+    percent: number;
+    /** 已上传字节数 */
+    loaded: number;
+    /** 上传速率(每秒传输字节数) */
+    rate: number;
     /** 上传控制器 */
     controller: AbortController;
 }

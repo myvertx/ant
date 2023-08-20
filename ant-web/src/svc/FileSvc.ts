@@ -3,6 +3,7 @@ import { Ro } from '@/ro/Ro';
 import { useRemoteStore } from '@/store/RemoteStore';
 import { LIST_FILE_URI } from '@/uri/FileUri';
 import { request } from '@/util/request';
+import { AxiosProgressEvent } from 'axios';
 
 export const fileSvc = {
     /**
@@ -22,8 +23,14 @@ export const fileSvc = {
      * @param url 上传的地址
      * @param controller 上传控制器
      * @param formData 上传的数据
+     * @param onUploadProgress 上传进度改变事件
      */
-    upload(url: string, controller: AbortController, formData: FormData): Promise<Ro> {
+    upload(
+        url: string,
+        controller: AbortController,
+        formData: FormData,
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => void,
+    ): Promise<Ro> {
         return request.post({
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -31,6 +38,7 @@ export const fileSvc = {
             url,
             signal: controller.signal,
             data: formData,
+            onUploadProgress,
         });
     },
 };
