@@ -110,29 +110,36 @@ export const useUploadStore = defineStore('uploadStore', {
         runTasks() {
             /** 定时器 */
             timer = setTimeout(() => {
-                const idleCount = this.maxCount - this.uploadingFiles.length;
+                let idleCount = this.maxCount - this.uploadingFiles.length;
                 console.log('idleCount', idleCount);
-                for (let i = 0; i < idleCount; i++) {
-                    for (const task of this.tasks) {
-                        for (const uploadFile of task.uploadFiles) {
-                            // 判断是否要上传
-                            if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile)) {
+                for (const task of this.tasks) {
+                    for (const uploadFile of task.uploadFiles) {
+                        // 如果状态在上传中，但是在上传中队列找不到了(可能是刷新/关闭过页面了)，那么状态先设置回准备好
+                        if (uploadFile.status === UploadStatus.Uploading && !this.isUploading(uploadFile)) {
+                            uploadFile.status = UploadStatus.Ready;
+                        }
+
+                        // 判断是否要上传
+                        if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile)) {
+                            if (idleCount > 0) {
                                 this.upload(uploadFile);
-                                continue;
+                                idleCount = this.maxCount - this.uploadingFiles.length;
                             }
-                            // 判断是否要取消上传
-                            else if (uploadFile.status !== UploadStatus.Ready && this.isUploading(uploadFile)) {
-                                this.cancelUploading(uploadFile);
-                                if (uploadFile.status === UploadStatus.Success) {
-                                    const remoteStore = useRemoteStore();
-                                    remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
-                                }
-                                continue;
-                            } else if (uploadFile.status === UploadStatus.Success) {
+                            continue;
+                        }
+                        // 判断是否要取消上传
+                        else if (uploadFile.status !== UploadStatus.Ready && this.isUploading(uploadFile)) {
+                            this.cancelUploading(uploadFile);
+                            if (uploadFile.status === UploadStatus.Success) {
+                                const remoteStore = useRemoteStore();
+                                remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                             }
+                            continue;
+                        } else if (uploadFile.status === UploadStatus.Success) {
                         }
                     }
                 }
+
                 clearTimeout(timer);
                 this.runTasks();
             }, this.internal);
@@ -166,6 +173,9 @@ export const useUploadStore = defineStore('uploadStore', {
          * @param uploadFile 上传文件
          */
         upload(uploadFile: UploadFile) {
+            // 状态设置为上传中
+            uploadFile.status = UploadStatus.Uploading;
+            // 上传控制器
             const controller = new AbortController();
             // 添加到上传中的文件ID列表
             this.uploadingFiles.push({ id: uploadFile.id, controller });
@@ -178,6 +188,7 @@ export const useUploadStore = defineStore('uploadStore', {
             // 上传
             fileSvc
                 .upload(uploadFile.url, controller, formData)
+
                 .then((ro) => {
                     if (ro.result > 0) {
                         this.uploadSuccess(uploadFile);
@@ -254,6 +265,8 @@ enum UploadStatus {
     Preparing,
     /** 准备好 */
     Ready,
+    /** 上传中 */
+    Uploading,
     /** 询问中 */
     Questioning,
     /** 上传成功 */
