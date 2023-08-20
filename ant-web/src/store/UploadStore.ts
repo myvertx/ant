@@ -16,7 +16,7 @@ let timer: NodeJS.Timeout;
 export const useUploadStore = defineStore('uploadStore', {
     state: (): State => {
         return {
-            tasks: [],
+            uploadFiles: [],
             uploadingFiles: [],
             internal: 1000,
             maxCount: 500,
@@ -33,11 +33,9 @@ export const useUploadStore = defineStore('uploadStore', {
 
             // 计算总共要上传的字节数
             let total = 0;
-            for (const task of state.tasks) {
-                for (const uploadFile of task.uploadFiles) {
-                    if (uploadFile.status in [UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading]) {
-                        total += uploadFile.size;
-                    }
+            for (const uploadFile of state.uploadFiles) {
+                if (uploadFile.status in [UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading]) {
+                    total += uploadFile.size;
                 }
             }
 
@@ -48,34 +46,20 @@ export const useUploadStore = defineStore('uploadStore', {
     actions: {
         /**
          * 计算hash值
-         * @param taskId 任务ID
          */
-        calcHash(taskId: string) {
-            const task = this.getTask(taskId);
-            if (task) {
-                for (const uploadFile of task.uploadFiles) {
-                    if (!uploadFile.hash) {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            const result = new Uint8Array(reader.result as ArrayBuffer);
-                            const hash = sha256(result).toString();
-                            uploadFile.hash = hash;
-                            uploadFile.status = UploadStatus.Ready;
-                        };
-                        reader.readAsArrayBuffer(uploadFile.file);
-                    }
+        calcHash() {
+            for (const uploadFile of this.uploadFiles) {
+                if (uploadFile.status === UploadStatus.Preparing && !uploadFile.hash) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const result = new Uint8Array(reader.result as ArrayBuffer);
+                        const hash = sha256(result).toString();
+                        uploadFile.hash = hash;
+                        uploadFile.status = UploadStatus.Ready;
+                    };
+                    reader.readAsArrayBuffer(uploadFile.file);
                 }
             }
-        },
-        /**
-         * 获取任务
-         * @param taskId 任务ID
-         */
-        getTask(taskId: string): UploadTask | null {
-            for (const task of this.tasks) {
-                if (task.id === taskId) return task;
-            }
-            return null;
         },
         /**
          * 添加任务
@@ -85,10 +69,11 @@ export const useUploadStore = defineStore('uploadStore', {
          * @param files 上传的文件列表
          */
         addTask(remoteName: string, dstDir: string, url: string, files: FileList) {
-            const uploadFiles: UploadFile[] = [];
+            const taskId = ulid();
             for (const file of files) {
-                uploadFiles.push({
+                this.uploadFiles.push({
                     id: ulid(),
+                    taskId,
                     size: file.size,
                     remoteName,
                     dstDir,
@@ -97,24 +82,19 @@ export const useUploadStore = defineStore('uploadStore', {
                     file,
                 });
             }
-            const taskId = ulid();
-            this.tasks.push({
-                id: taskId,
-                uploadFiles,
-            });
-            this.calcHash(taskId);
+            this.calcHash();
         },
-        /** 取消上传任务 */
-        cancelTask(task: UploadTask) {
-            for (let i = this.tasks.length - 1; i >= 0; i--) {
-                if (this.tasks[i].id === task.id) {
-                    for (const uploadFile of this.tasks[i].uploadFiles) {
-                        this.cancelUploading(uploadFile);
-                    }
-                    this.tasks.splice(i, 1);
+        /** 取消上传 */
+        cancelUpload(uploadFileId: string) {
+            for (let i = 0; i < this.uploadFiles.length; i++) {
+                const uploadFile = this.uploadFiles[i];
+                if (uploadFileId === uploadFile.id) {
+                    this.cancelUploading(uploadFile);
+                    this.uploadFiles.splice(i, 1);
                     return;
                 }
             }
+            return;
         },
         /** 运行任务 */
         runTasks() {
@@ -122,31 +102,29 @@ export const useUploadStore = defineStore('uploadStore', {
             timer = setTimeout(() => {
                 let idleCount = this.maxCount - this.uploadingFiles.length;
                 console.log('idleCount', idleCount);
-                for (const task of this.tasks) {
-                    for (const uploadFile of task.uploadFiles) {
-                        // 如果状态在上传中，但是在上传中队列找不到了(可能是刷新/关闭过页面了)，那么状态先设置回准备好
-                        if (uploadFile.status === UploadStatus.Uploading && !this.isUploading(uploadFile)) {
-                            uploadFile.status = UploadStatus.Ready;
-                        }
+                for (const uploadFile of this.uploadFiles) {
+                    // 如果状态在上传中，但是在上传中队列找不到了(可能是刷新/关闭过页面了)，那么状态先设置回准备好
+                    if (uploadFile.status === UploadStatus.Uploading && !this.isUploading(uploadFile)) {
+                        uploadFile.status = UploadStatus.Ready;
+                    }
 
-                        // 判断是否要上传
-                        if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile)) {
-                            if (idleCount > 0) {
-                                this.upload(uploadFile);
-                                idleCount = this.maxCount - this.uploadingFiles.length;
-                            }
-                            continue;
+                    // 判断是否要上传
+                    if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile)) {
+                        if (idleCount > 0) {
+                            this.upload(uploadFile);
+                            idleCount = this.maxCount - this.uploadingFiles.length;
                         }
-                        // 判断是否要取消上传
-                        else if (uploadFile.status !== UploadStatus.Ready && this.isUploading(uploadFile)) {
-                            this.cancelUploading(uploadFile);
-                            if (uploadFile.status === UploadStatus.Success) {
-                                const remoteStore = useRemoteStore();
-                                remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
-                            }
-                            continue;
-                        } else if (uploadFile.status === UploadStatus.Success) {
+                        continue;
+                    }
+                    // 判断是否要取消上传
+                    else if (uploadFile.status !== UploadStatus.Ready && this.isUploading(uploadFile)) {
+                        this.cancelUploading(uploadFile);
+                        if (uploadFile.status === UploadStatus.Success) {
+                            const remoteStore = useRemoteStore();
+                            remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                         }
+                        continue;
+                    } else if (uploadFile.status === UploadStatus.Success) {
                     }
                 }
 
@@ -229,8 +207,8 @@ export const useUploadStore = defineStore('uploadStore', {
 });
 
 interface State {
-    /** 上传任务列表 */
-    tasks: UploadTask[];
+    /** 上传文件列表 */
+    uploadFiles: UploadFile[];
     /** 上传中的文件ID列表 */
     uploadingFiles: UploadingFile[];
     /** 运行任务定时器执行间隔(单位毫秒) */
@@ -239,23 +217,17 @@ interface State {
     maxCount: number;
 }
 
-/** 上传任务 */
-export interface UploadTask {
-    /** 上传任务ID */
-    id: string;
-    /** 上传任务文件列表 */
-    uploadFiles: UploadFile[];
-}
-
 /** 上传任务中的文件 */
 export interface UploadFile {
     /** 上传文件ID */
     id: string;
+    /** 任务ID */
+    taskId: string;
     /** 上传文件的大小(单位是字节) */
     size: number;
     /** 上传文件hash */
     hash?: string;
-    /** 上传的状态 */
+    /** 上传状态 */
     status: UploadStatus;
     /** 远端名称 */
     remoteName: string;

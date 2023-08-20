@@ -15,7 +15,7 @@ let { isDark } = $(useThemeStore());
 // 远端
 let { curRemoteIndex, remotes } = $(useRemoteStore());
 // 上传
-let { tasks, percent, cancelTask } = $(useUploadStore());
+let { uploadFiles, percent, cancelUpload } = $(useUploadStore());
 
 watch(useDark(), (newValue) => {
     isDark = newValue;
@@ -34,33 +34,49 @@ const toggleDark = useToggle(useDark());
                 </el-radio-button>
             </el-radio-group>
         </div>
-        <el-popover title="文件上传进度" width="500" v-if="tasks.length > 0" placement="bottom-end">
+        <el-popover title="文件上传进度" width="500" v-if="uploadFiles.length > 0" placement="bottom-end">
             <template #reference>
                 <el-progress class="upload-progress" type="circle" :percentage="percent" :width="40" />
             </template>
-            <div class="upload-file" v-for="task in tasks">
+            <div class="upload-file" v-for="uploadFile in uploadFiles">
                 <UploadFileIcon class="upload-file-icon" />
                 <div class="detail">
-                    <div class="file-name">{{ task.name }}</div>
-                    <el-progress size="small" :percentage="task.percent" :format="formatPercent" />
+                    <div class="file-name">{{ uploadFile.file.name }}</div>
+                    <el-progress size="small" :percentage="uploadFile.percent" :format="formatPercent" />
                     <div class="file-status">
-                        <span v-if="task.status === 'ready'">准备中</span>
-                        <span v-else-if="task.status === 'uploading'">上传中</span>
-                        <span v-else-if="task.status === 'success'">已完成</span>
-                        <span v-else-if="task.status === 'fail'" class="err">
-                            错误: {{ task.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
+                        <span v-if="uploadFile.status === 'ready'">准备中</span>
+                        <span v-else-if="uploadFile.status === 'uploading'">上传中</span>
+                        <span v-else-if="uploadFile.status === 'success'">已完成</span>
+                        <span v-else-if="uploadFile.status === 'fail'" class="err">
+                            错误: {{ uploadFile.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
                         </span>
                         <span v-else class="err">未知状态</span>
-                        <span>---- {{ byteConvert(task.size || 0) }}</span>
+                        <span>---- {{ byteConvert(uploadFile.size || 0) }}</span>
                     </div>
                 </div>
-                <el-tooltip content="取消上传" v-if="task.status !== 'success' && task.status !== 'fail'">
+                <el-tooltip content="取消上传" v-if="uploadFile.status !== 'success' && uploadFile.status !== 'fail'">
                     <div>
                         <el-popconfirm
                             title="你是否要取消该文件的上传?"
                             confirm-button-text="是"
                             cancel-button-text="否"
-                            @confirm="cancelUpload(task)"
+                            @confirm="cancelUpload(uploadFile)"
+                        >
+                            <template #reference>
+                                <el-icon class="action-icon">
+                                    <CircleClose />
+                                </el-icon>
+                            </template>
+                        </el-popconfirm>
+                    </div>
+                </el-tooltip>
+                <el-tooltip content="取消上传" v-if="uploadFile.status !== 'success' && uploadFile.status !== 'fail'">
+                    <div>
+                        <el-popconfirm
+                            title="你是否要取消该文件的上传?"
+                            confirm-button-text="是"
+                            cancel-button-text="否"
+                            @confirm="cancelUpload(uploadFile)"
                         >
                             <template #reference>
                                 <el-icon class="action-icon">

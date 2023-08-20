@@ -9,7 +9,7 @@ const { curRemote, curColumnPath } =
     // 这里强制折行，否则格式化后会多一个逗号
     $(useRemoteStore());
 // 上传
-let { runTasks, addTask, cancelTask } = $(useUploadStore());
+let { runTasks, addTask } = $(useUploadStore());
 
 // ****** 局部状态 ******
 // file input dom
