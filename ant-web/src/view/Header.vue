@@ -90,18 +90,28 @@ const toggleDark = useToggle(useDark());
                             "
                         >
                             <div>
-                                <el-icon class="action-icon">
-                                    <VideoPlay
-                                        v-if="[UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)"
-                                        @click="startUpload(uploadFile.id)"
-                                    />
-                                    <VideoPause
-                                        v-else-if="
-                                            [UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)
-                                        "
-                                        @click="stopUpload(uploadFile.id)"
-                                    />
-                                    <Warning v-else />
+                                <el-icon
+                                    class="action-icon"
+                                    v-if="[UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)"
+                                    @click="startUpload(uploadFile.id)"
+                                >
+                                    <VideoPlay />
+                                </el-icon>
+                                <el-popconfirm
+                                    title="你确定要停止该文件的上传?"
+                                    confirm-button-text="确定"
+                                    cancel-button-text="取消"
+                                    v-else-if="[UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)"
+                                    @confirm="stopUpload(uploadFile.id)"
+                                >
+                                    <template #reference>
+                                        <el-icon class="action-icon">
+                                            <VideoPause />
+                                        </el-icon>
+                                    </template>
+                                </el-popconfirm>
+                                <el-icon class="action-icon" v-else>
+                                    <Warning />
                                 </el-icon>
                             </div>
                         </el-tooltip>
