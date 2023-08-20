@@ -121,7 +121,7 @@ function req(config: AxiosRequestConfig, promptMsg = PromptMsg.OnlyPromptError):
             return data;
         })
         .catch((err) => {
-            console.log('response error', err);
+            console.error('response error', err);
 
             // 错误提示信息
             const msg =
