@@ -90,7 +90,12 @@ public class WebVerticle extends AbstractWebVerticle {
                     String           sDstDir     = formAttributes.get("dstDir");
                     String           createDir   = formAttributes.get("createDir");
                     List<FileUpload> fileUploads = ctx.fileUploads();
-                    FileUpload       fileUpload  = fileUploads.get(0);
+                    if (fileUploads.isEmpty()) {
+                        response.end(Json.encode(Vro.fail("上传内容为空，可能是上传未完成就刷新了页面")));
+                        return;
+                    }
+
+                    FileUpload fileUpload = fileUploads.get(0);
                     log.debug("""
                                     fileUpload:
                                     - name: {}
