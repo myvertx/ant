@@ -2,15 +2,15 @@
 @use 'v-contextmenu/dist/themes/default.css';
 
 // 标题栏的背景色
-$bg-color-title: darken(white, 16%);
+$bg-color-title: darken(white, 30%);
 // 导航菜单的背景色
-$bg-color-nav: darken(white, 12%);
+$bg-color-nav: darken(white, 20%);
 // 基础区域的背景色
-$bg-color-base: darken(white, 8%);
+$bg-color-base: darken(white, 12%);
 // 激活区域的背景色
-$bg-color-actived: darken(white, 6%);
+$bg-color-actived: darken(white, 10%);
 // 分隔线的背景色
-$bg-color-spliter: darken(white, 12%);
+$bg-color-spliter: darken(white, 20%);
 
 // 正常时候的字体颜色
 $color-base: lighten(black, 20%);

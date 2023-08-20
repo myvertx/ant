@@ -1,6 +1,6 @@
 main:
   root: /root
-  uploadFileSizeLimit: 10M
+#  uploadFileSizeLimit: 2000M
 web:
   config:
     isCors: true

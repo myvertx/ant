@@ -34,13 +34,13 @@ export const useUploadStore = defineStore('uploadStore', {
             // 计算总共要上传的字节数
             let total = 0;
             for (const uploadFile of state.uploadFiles) {
-                if (uploadFile.status in [UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading]) {
+                if ([UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)) {
                     total += uploadFile.size;
                 }
             }
 
             // 平均求总进度
-            return total ? uploadedSum / total : 100;
+            return total ? uploadedSum / total : 0;
         },
     },
     actions: {
@@ -84,12 +84,12 @@ export const useUploadStore = defineStore('uploadStore', {
             }
             this.calcHash();
         },
-        /** 取消上传 */
-        cancelUpload(uploadFileId: string) {
+        /** 删除上传文件 */
+        removeUploadFile(uploadFileId: string) {
             for (let i = 0; i < this.uploadFiles.length; i++) {
                 const uploadFile = this.uploadFiles[i];
                 if (uploadFileId === uploadFile.id) {
-                    this.cancelUploading(uploadFile);
+                    this.removeUploadingFile(uploadFile.id);
                     this.uploadFiles.splice(i, 1);
                     return;
                 }
@@ -104,12 +104,12 @@ export const useUploadStore = defineStore('uploadStore', {
                 console.log('idleCount', idleCount);
                 for (const uploadFile of this.uploadFiles) {
                     // 如果状态在上传中，但是在上传中队列找不到了(可能是刷新/关闭过页面了)，那么状态先设置回准备好
-                    if (uploadFile.status === UploadStatus.Uploading && !this.isUploading(uploadFile)) {
+                    if (uploadFile.status === UploadStatus.Uploading && !this.isUploading(uploadFile.id)) {
                         uploadFile.status = UploadStatus.Ready;
                     }
 
                     // 判断是否要上传
-                    if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile)) {
+                    if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile.id)) {
                         if (idleCount > 0) {
                             this.upload(uploadFile);
                             idleCount = this.maxCount - this.uploadingFiles.length;
@@ -117,8 +117,8 @@ export const useUploadStore = defineStore('uploadStore', {
                         continue;
                     }
                     // 判断是否要取消上传
-                    else if (uploadFile.status !== UploadStatus.Ready && this.isUploading(uploadFile)) {
-                        this.cancelUploading(uploadFile);
+                    else if (uploadFile.status !== UploadStatus.Uploading && this.isUploading(uploadFile.id)) {
+                        this.removeUploadingFile(uploadFile.id);
                         if (uploadFile.status === UploadStatus.Success) {
                             const remoteStore = useRemoteStore();
                             remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
@@ -128,28 +128,57 @@ export const useUploadStore = defineStore('uploadStore', {
                     }
                 }
 
+                // 清除已经完成的上传文件
+                for (let i = this.uploadFiles.length - 1; i >= 0; i--) {
+                    const uploadFile = this.uploadFiles[i];
+                    if (uploadFile.status === UploadStatus.Success) {
+                        this.uploadFiles.splice(i, 1);
+                    }
+                }
+
                 clearTimeout(timer);
                 this.runTasks();
             }, this.internal);
         },
         /**
-         * 文件是否在上传中
-         * @param uploadFile 上传文件
+         * 获取上传的文件
+         * @param uploadFileId 上传文件ID
          */
-        isUploading(uploadFile: UploadFile): boolean {
+        getUploadFile(uploadFileId: string): UploadFile | undefined {
+            for (const uploadFile of this.uploadFiles) {
+                if (uploadFile.id === uploadFileId) return uploadFile;
+            }
+            return undefined;
+        },
+        /**
+         * 获取上传中的文件
+         * @param uploadFileId 上传文件的ID
+         */
+        getUploadingFile(uploadFileId: string): UploadingFile | undefined {
             for (const uploadingFile of this.uploadingFiles) {
-                if (uploadingFile.id === uploadFile.id) return true;
+                if (uploadingFile.id === uploadFileId) return uploadingFile;
+            }
+            return undefined;
+        },
+        /**
+         * 文件是否在上传中
+         * @param uploadFileId 上传文件ID
+         */
+        isUploading(uploadFileId: string): boolean {
+            for (const uploadingFile of this.uploadingFiles) {
+                if (uploadingFile.id === uploadFileId) return true;
             }
             return false;
         },
         /**
-         * 取消上传
-         * @param uploadFile 上传的文件
+         * 删除上传中的文件
+         * @param uploadFileId 上传文件ID
          */
-        cancelUploading(uploadFile: UploadFile) {
+        removeUploadingFile(uploadFileId: string) {
+            console.log('removeUploadingFile');
             for (let i = this.uploadingFiles.length - 1; i >= 0; i--) {
                 const uploadingFile = this.uploadingFiles[i];
-                if (uploadingFile.id === uploadFile.id) {
+                if (uploadingFile.id === uploadFileId) {
                     uploadingFile.controller.abort();
                     this.uploadingFiles.splice(i, 1);
                     return;
@@ -165,9 +194,8 @@ export const useUploadStore = defineStore('uploadStore', {
             uploadFile.status = UploadStatus.Uploading;
             // 上传控制器
             const controller = new AbortController();
-            const uploadingFile: UploadingFile = { id: uploadFile.id, controller, loaded: 0, percent: 0, rate: 0 };
             // 添加到上传中的文件ID列表
-            this.uploadingFiles.push(uploadingFile);
+            this.uploadingFiles.push({ id: uploadFile.id, controller, loaded: 0, percent: 0, rate: 0 });
             // 配置上传的数据
             const formData = new FormData();
             formData.append('id', uploadFile.id);
@@ -177,32 +205,52 @@ export const useUploadStore = defineStore('uploadStore', {
             // 上传进度改变事件
             const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
                 console.log('progressEvent', progressEvent);
-                uploadingFile.loaded = progressEvent.loaded;
-                uploadingFile.percent = (progressEvent.progress as number) * 100;
-                uploadingFile.rate = progressEvent.rate as number;
+                if (progressEvent.upload) {
+                    const uploadingFile = this.getUploadingFile(uploadFile.id);
+                    if (uploadingFile) {
+                        uploadingFile.loaded = progressEvent.loaded;
+                        uploadingFile.percent = (progressEvent.progress as number) * 100;
+                        uploadingFile.rate = progressEvent.rate as number;
+                    }
+                }
             };
             // 上传
             fileSvc
                 .upload(uploadFile.url, controller, formData, onUploadProgress)
                 .then((ro) => {
                     if (ro.result > 0) {
-                        this.uploadSuccess(uploadFile);
+                        uploadFile.status = UploadStatus.Success;
                     } else {
-                        this.uploadFail(uploadFile);
+                        uploadFile.status = UploadStatus.Fail;
+                        uploadFile.error = ro.msg;
                     }
                 })
-                .catch(() => this.uploadFail(uploadFile));
+                .catch((ro) => {
+                    uploadFile.status = UploadStatus.Fail;
+                    uploadFile.error = ro.msg;
+                });
         },
-        uploadSuccess(uploadFile: UploadFile) {
-            uploadFile.status = UploadStatus.Success;
+        /**
+         * 启动上传
+         * @param uploadFileId 上传文件ID
+         */
+        startUpload(uploadFileId: string) {
+            let uploadFile = this.getUploadFile(uploadFileId) as UploadFile;
+            uploadFile.status = UploadStatus.Ready;
         },
-        uploadFail(uploadFile: UploadFile) {
-            uploadFile.status = UploadStatus.Fail;
+        /**
+         * 停止上传
+         * @param uploadFileId 上传文件ID
+         */
+        stopUpload(uploadFileId: string) {
+            let uploadFile = this.getUploadFile(uploadFileId) as UploadFile;
+            uploadFile.status = UploadStatus.Stop;
+            this.removeUploadingFile(uploadFileId);
         },
     },
     persist: {
         // 部分持久化，上传中文件ID列表不持久化
-        paths: ['tasks', 'maxCount'],
+        paths: ['uploadFiles', 'internal', 'maxCount'],
     },
 });
 
@@ -237,6 +285,8 @@ export interface UploadFile {
     url: string;
     /** 上传文件信息 */
     file: File;
+    /** 上传错误时提示的信息 */
+    error?: string;
 }
 
 export interface UploadingFile {
@@ -254,8 +304,8 @@ export interface UploadingFile {
 
 /** 上传状态 */
 export enum UploadStatus {
-    /** 取消上传 */
-    Cancel,
+    /** 停止上传 */
+    Stop,
     /** 正在准备 */
     Preparing,
     /** 准备好 */

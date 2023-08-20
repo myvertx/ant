@@ -1,12 +1,12 @@
 <script setup lang="ts">
 // @ts-ignore
 import { toggleTheme } from '@zougt/vite-plugin-theme-preprocessor/dist/browser-utils';
-import { CircleClose } from '@element-plus/icons-vue';
+import { CircleClose, Sunny, Moon, VideoPlay, VideoPause, Warning } from '@element-plus/icons-vue';
 import { useDark, useToggle } from '@vueuse/core';
 import { byteConvert, formatPercent } from '@/util/comm';
 
 import { useThemeStore } from '@/store/ThemeStore';
-import { useUploadStore } from '@/store/UploadStore';
+import { useUploadStore, UploadStatus, UploadingFile } from '@/store/UploadStore';
 import { useRemoteStore } from '@/store/RemoteStore';
 
 // ****** 中央状态 ******
@@ -15,7 +15,11 @@ let { isDark } = $(useThemeStore());
 // 远端
 let { curRemoteIndex, remotes } = $(useRemoteStore());
 // 上传
-let { uploadFiles, percent, cancelUpload } = $(useUploadStore());
+let { uploadFiles, percent, getUploadingFile, startUpload, stopUpload, removeUploadFile } = $(useUploadStore());
+
+// ****** 局部状态 ******
+// 上传中的文件
+let uploadingFile: UploadingFile | undefined = undefined;
 
 watch(useDark(), (newValue) => {
     isDark = newValue;
@@ -34,68 +38,103 @@ const toggleDark = useToggle(useDark());
                 </el-radio-button>
             </el-radio-group>
         </div>
-        <el-popover title="文件上传进度" width="500" v-if="uploadFiles.length > 0" placement="bottom-end">
-            <template #reference>
-                <el-progress class="upload-progress" type="circle" :percentage="percent" :width="40" />
-            </template>
-            <div class="upload-file" v-for="uploadFile in uploadFiles">
-                <UploadFileIcon class="upload-file-icon" />
-                <div class="detail">
-                    <div class="file-name">{{ uploadFile.file.name }}</div>
-                    <el-progress size="small" :percentage="uploadFile.percent" :format="formatPercent" />
-                    <div class="file-status">
-                        <span v-if="uploadFile.status === 'ready'">准备中</span>
-                        <span v-else-if="uploadFile.status === 'uploading'">上传中</span>
-                        <span v-else-if="uploadFile.status === 'success'">已完成</span>
-                        <span v-else-if="uploadFile.status === 'fail'" class="err">
-                            错误: {{ uploadFile.error.status === 413 ? '文件太大，禁止上传到服务器！' : '未知错误' }}
-                        </span>
-                        <span v-else class="err">未知状态</span>
-                        <span>---- {{ byteConvert(uploadFile.size || 0) }}</span>
-                    </div>
-                </div>
-                <el-tooltip content="取消上传" v-if="uploadFile.status !== 'success' && uploadFile.status !== 'fail'">
-                    <div>
-                        <el-popconfirm
-                            title="你是否要取消该文件的上传?"
-                            confirm-button-text="是"
-                            cancel-button-text="否"
-                            @confirm="cancelUpload(uploadFile)"
+        <el-tooltip content="文件上传">
+            <div class="file-upload">
+                <el-popover
+                    v-if="uploadFiles.length > 0"
+                    title="文件上传"
+                    width="700"
+                    placement="bottom-end"
+                    trigger="click"
+                >
+                    <template #reference>
+                        <el-progress class="upload-progress" type="circle" :percentage="percent" :width="40" />
+                    </template>
+                    <div class="upload-file" v-for="uploadFile in uploadFiles">
+                        {{ void (uploadingFile = getUploadingFile(uploadFile.id)) }}
+                        <UploadFileIcon class="upload-file-icon" />
+                        <div class="detail">
+                            <div class="file-name">{{ uploadFile.file.name }}</div>
+                            <el-progress
+                                size="small"
+                                :percentage="
+                                    [UploadStatus.Success, UploadStatus.Questioning].includes(uploadFile.status)
+                                        ? 100
+                                        : uploadingFile?.percent
+                                "
+                                :format="formatPercent"
+                            />
+                            <div class="file-status">
+                                <span v-if="uploadFile.status === UploadStatus.Preparing">准备中</span>
+                                <span v-else-if="uploadFile.status === UploadStatus.Ready">等待上传</span>
+                                <span v-else-if="uploadFile.status === UploadStatus.Uploading">上传中</span>
+                                <span v-else-if="uploadFile.status === UploadStatus.Questioning"
+                                    >文件已存在，是否覆盖？</span
+                                >
+                                <span v-else-if="uploadFile.status === UploadStatus.Success">已完成</span>
+                                <span v-else-if="uploadFile.status === UploadStatus.Stop">已停止</span>
+                                <span v-else-if="uploadFile.status === UploadStatus.Fail" class="err">
+                                    错误: {{ uploadFile.error }}
+                                </span>
+                                <span v-else class="err">未知状态</span>
+                                <span>---- {{ byteConvert(uploadFile.size || 0) }}</span>
+                            </div>
+                        </div>
+                        <el-tooltip
+                            :content="
+                                [UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)
+                                    ? '启动'
+                                    : [UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)
+                                    ? '停止'
+                                    : '不能启动'
+                            "
                         >
-                            <template #reference>
+                            <div>
                                 <el-icon class="action-icon">
-                                    <CircleClose />
+                                    <VideoPlay
+                                        v-if="[UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)"
+                                        @click="startUpload(uploadFile.id)"
+                                    />
+                                    <VideoPause
+                                        v-else-if="
+                                            [UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)
+                                        "
+                                        @click="stopUpload(uploadFile.id)"
+                                    />
+                                    <Warning v-else />
                                 </el-icon>
-                            </template>
-                        </el-popconfirm>
+                            </div>
+                        </el-tooltip>
+                        <el-tooltip :content="uploadFile.status === UploadStatus.Success ? '清除记录' : '取消上传'">
+                            <div>
+                                <el-popconfirm
+                                    title="你确定要取消该文件的上传?"
+                                    confirm-button-text="确定"
+                                    cancel-button-text="取消"
+                                    @confirm="removeUploadFile(uploadFile.id)"
+                                >
+                                    <template #reference>
+                                        <el-icon class="action-icon">
+                                            <CircleClose />
+                                        </el-icon>
+                                    </template>
+                                </el-popconfirm>
+                            </div>
+                        </el-tooltip>
                     </div>
-                </el-tooltip>
-                <el-tooltip content="取消上传" v-if="uploadFile.status !== 'success' && uploadFile.status !== 'fail'">
-                    <div>
-                        <el-popconfirm
-                            title="你是否要取消该文件的上传?"
-                            confirm-button-text="是"
-                            cancel-button-text="否"
-                            @confirm="cancelUpload(uploadFile)"
-                        >
-                            <template #reference>
-                                <el-icon class="action-icon">
-                                    <CircleClose />
-                                </el-icon>
-                            </template>
-                        </el-popconfirm>
-                    </div>
-                </el-tooltip>
+                </el-popover>
             </div>
-        </el-popover>
+        </el-tooltip>
         <el-tooltip content="切换主题">
             <div class="toggle-theme">
                 <el-switch
                     inline-prompt
                     v-model="isDark"
                     active-text="暗黑"
-                    inactive-text="普通"
+                    inactive-text="明亮"
                     @change="toggleDark()"
+                    :active-action-icon="Moon"
+                    :inactive-action-icon="Sunny"
                 />
             </div>
         </el-tooltip>
@@ -116,11 +155,14 @@ $header-height: 60px;
         padding: 0 20px;
         flex-grow: 1;
     }
-    .upload-progress {
+    .file-upload {
         display: flex;
-        cursor: pointer;
-        .el-progress__text {
-            min-width: 40px;
+        .upload-progress {
+            display: flex;
+            cursor: pointer;
+            .el-progress__text {
+                min-width: 40px;
+            }
         }
     }
     .toggle-theme {
@@ -147,7 +189,6 @@ $header-height: 60px;
             font-size: 10px;
             margin-top: -2px;
             .err {
-                @debug $color-error;
                 color: $color-error;
             }
         }
@@ -156,7 +197,7 @@ $header-height: 60px;
         cursor: pointer;
         color: $icon-color-base;
         font-size: 24px;
-        padding-top: 8px;
+        padding: 10px 10px 0 0;
         &:hover {
             color: $icon-color-hover;
         }

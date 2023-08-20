@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
-// import { themePreprocessorPlugin, themePreprocessorHmrPlugin } from '@zougt/vite-plugin-theme-preprocessor';
 import { themePreprocessorPlugin } from '@zougt/vite-plugin-theme-preprocessor';
 import path from 'path';
 import Icons from 'unplugin-icons/vite';
@@ -144,28 +143,6 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
                     customThemeCssFileName: (scopeName) => scopeName,
                 },
             }),
-            // // 创建动态主题切换 https://github.com/GitOfZGT/vite-plugin-theme-preprocessor/blob/master/README.zh.md
-            // themePreprocessorPlugin({
-            //     less: {
-            //         // 提供多组变量文件
-            //         multipleScopeVars: [
-            //             {
-            //                 scopeName: 'default',
-            //                 // 变量文件内容不应该夹带样式代码，设定上只需存在变量
-            //                 path: path.resolve('src/assets/theme/default.less'),
-            //             },
-            //             {
-            //                 scopeName: 'dark',
-            //                 // 变量文件内容不应该夹带样式代码，设定上只需存在变量
-            //                 path: path.resolve('src/assets/theme/dark.less'),
-            //             },
-            //         ],
-            //         // 默认取 multipleScopeVars[0].scopeName
-            //         defaultScopeName: 'dark',
-            //     },
-            // }),
-            // // 主题热更新，不得已分开插件，因为需要vite插件顺序enforce
-            // themePreprocessorHmrPlugin(),
         ],
     };
 });
