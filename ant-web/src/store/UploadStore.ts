@@ -6,6 +6,8 @@ import { fileSvc } from '@/svc/FileSvc';
 import { AxiosProgressEvent } from 'axios';
 // @ts-ignore
 import sha256 from 'crypto-js/sha256';
+import * as CryptoJS from 'crypto-js';
+
 import { ulid } from 'ulid';
 
 // import { UploadFile } from 'element-plus';
@@ -53,8 +55,8 @@ export const useUploadStore = defineStore('uploadStore', {
                 if (uploadFile.status === UploadStatus.Preparing && !uploadFile.hash) {
                     const reader = new FileReader();
                     reader.onload = () => {
-                        const result = new Uint8Array(reader.result as ArrayBuffer);
                         // @ts-ignore
+                        const result = CryptoJS.lib.WordArray.create(reader.result);
                         const hash = sha256(result).toString();
                         uploadFile.hash = hash;
                         uploadFile.status = UploadStatus.Ready;
@@ -276,7 +278,6 @@ export const useUploadStore = defineStore('uploadStore', {
                 .then((ro) => {
                     if (ro.result > 0) {
                         uploadFile.status = UploadStatus.Success;
-
                     }
                 });
         },

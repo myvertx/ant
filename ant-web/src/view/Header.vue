@@ -124,7 +124,7 @@ const toggleDark = useToggle(useDark());
                                     <CopyDocument />
                                 </el-icon>
                                 <el-icon v-else class="action-icon">
-                                    <DisableStartIcon class="action-icon" />
+                                    <DisableStartIcon />
                                 </el-icon>
                             </div>
                         </el-tooltip>

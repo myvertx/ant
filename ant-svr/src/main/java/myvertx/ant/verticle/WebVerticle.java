@@ -12,11 +12,14 @@ import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import rebue.wheel.api.dic.ResultDic;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -119,6 +122,7 @@ public class WebVerticle extends AbstractWebVerticle {
                     MultiMap formAttributes = ctx.request().formAttributes();
                     log.debug("formAttributes: {}", formAttributes);
                     String           sDstDir     = formAttributes.get("dstDir");
+                    String           hash        = formAttributes.get("hash");
                     List<FileUpload> fileUploads = ctx.fileUploads();
                     if (fileUploads.isEmpty()) {
                         response.end(Json.encode(Vro.fail("上传内容为空，可能是上传未完成就刷新了页面")));
@@ -147,6 +151,20 @@ public class WebVerticle extends AbstractWebVerticle {
 
                     // 临时文件路径
                     Path tempFilePath = Path.of(fileUpload.uploadedFileName());
+                    // 检测hash是否正确
+                    try (FileInputStream fileInputStream = new FileInputStream(tempFilePath.toString());
+                         DataInputStream dataInputStream = new DataInputStream(fileInputStream)) {
+                        String correctHash = DigestUtils.sha256Hex(dataInputStream);
+                        log.debug("正确的hash是: {}", correctHash);
+                        if (!correctHash.equalsIgnoreCase(hash)) {
+                            response.end(Json.encode(Vro.fail("文件校验不正确，请重新传输: " + fileUpload.fileName())));
+                            return;
+                        }
+                    } catch (IOException e) {
+                        response.end(Json.encode(Vro.fail("读取临时文件出错: " + fileUpload.fileName())));
+                        return;
+                    }
+
                     // 目的地目录
                     Path dstDir = Path.of(rootPath, sDstDir);
                     // 目的地文件路径
