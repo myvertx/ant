@@ -1,7 +1,7 @@
 import { Ro } from '@/ro/Ro';
 
 import { useRemoteStore } from '@/store/RemoteStore';
-import { LIST_FILE_URI } from '@/uri/FileUri';
+import { LIST_FILE_URI, OVERWRITE_URI } from '@/uri/FileUri';
 import { request } from '@/util/request';
 import { AxiosProgressEvent } from 'axios';
 
@@ -40,6 +40,17 @@ export const fileSvc = {
             signal: controller.signal,
             data: formData,
             onUploadProgress,
+        });
+    },
+    /**
+     * 覆盖文件
+     * @param remoteBasePath 远端的基础路径
+     * @param data 提交的数据
+     */
+    overwrite(remoteBasePath: string, data: any): Promise<Ro> {
+        return request.post({
+            url: remoteBasePath + OVERWRITE_URI,
+            data,
         });
     },
 };

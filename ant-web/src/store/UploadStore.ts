@@ -1,5 +1,6 @@
 // 你可以对 `defineStore()` 的返回值进行任意命名，但最好使用 store 的名字，同时以 `use` 开头且以 `Store` 结尾。(比如 `useUserStore`，`useCartStore`，`useProductStore`)
 
+import { RemoteMo } from '@/mo/RemoteMo';
 import { useRemoteStore } from './RemoteStore.ts';
 import { fileSvc } from '@/svc/FileSvc';
 import { AxiosProgressEvent } from 'axios';
@@ -53,6 +54,7 @@ export const useUploadStore = defineStore('uploadStore', {
                     const reader = new FileReader();
                     reader.onload = () => {
                         const result = new Uint8Array(reader.result as ArrayBuffer);
+                        // @ts-ignore
                         const hash = sha256(result).toString();
                         uploadFile.hash = hash;
                         uploadFile.status = UploadStatus.Ready;
@@ -63,19 +65,21 @@ export const useUploadStore = defineStore('uploadStore', {
         },
         /**
          * 添加任务
-         * @param remoteName 远端名称
+         * @param remote 远端
          * @param dstDir 上传目的地的目录
          * @param url 上传的地址
          * @param files 上传的文件列表
          */
-        addTask(remoteName: string, dstDir: string, url: string, files: FileList) {
+        addTask(remote: RemoteMo, dstDir: string, url: string, files: FileList) {
             const taskId = ulid();
             for (const file of files) {
                 this.uploadFiles.push({
                     id: ulid(),
+                    name: file.name,
                     taskId,
                     size: file.size,
-                    remoteName,
+                    remoteName: remote.name,
+                    remoteBashPath: remote.basePath,
                     dstDir,
                     status: UploadStatus.Preparing,
                     url,
@@ -100,6 +104,7 @@ export const useUploadStore = defineStore('uploadStore', {
         runTasks() {
             /** 定时器 */
             timer = setTimeout(() => {
+                const remoteStore = useRemoteStore();
                 let idleCount = this.maxCount - this.uploadingFiles.length;
                 console.log('idleCount', idleCount);
                 for (const uploadFile of this.uploadFiles) {
@@ -120,7 +125,6 @@ export const useUploadStore = defineStore('uploadStore', {
                     else if (uploadFile.status !== UploadStatus.Uploading && this.isUploading(uploadFile.id)) {
                         this.removeUploadingFile(uploadFile.id);
                         if (uploadFile.status === UploadStatus.Success) {
-                            const remoteStore = useRemoteStore();
                             remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                         }
                         continue;
@@ -133,6 +137,7 @@ export const useUploadStore = defineStore('uploadStore', {
                     const uploadFile = this.uploadFiles[i];
                     if (uploadFile.status === UploadStatus.Success) {
                         this.uploadFiles.splice(i, 1);
+                        remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                     }
                 }
 
@@ -221,8 +226,16 @@ export const useUploadStore = defineStore('uploadStore', {
                     if (ro.result > 0) {
                         uploadFile.status = UploadStatus.Success;
                     } else {
-                        uploadFile.status = UploadStatus.Fail;
-                        uploadFile.error = ro.msg;
+                        if (ro.result === -3 && ro.code === 'FILE_EXIST') {
+                            uploadFile.status = UploadStatus.AskOverWrite;
+                            // @ts-ignore
+                            uploadFile.tempFilePath = ro.extra.tempFilePath;
+                            // @ts-ignore
+                            uploadFile.dstFilePath = ro.extra.dstFilePath;
+                        } else {
+                            uploadFile.status = UploadStatus.Fail;
+                            uploadFile.error = ro.msg;
+                        }
                     }
                 })
                 .catch((ro) => {
@@ -247,6 +260,26 @@ export const useUploadStore = defineStore('uploadStore', {
             uploadFile.status = UploadStatus.Stop;
             this.removeUploadingFile(uploadFileId);
         },
+        /**
+         * 覆盖或重命名
+         * @param uploadFile 上传文件
+         * @param isOverWrite 是否覆盖
+         */
+        overwrite(uploadFile: UploadFile, isOverWrite: boolean) {
+            // 覆盖
+            fileSvc
+                .overwrite(uploadFile.remoteBashPath, {
+                    isOverWrite,
+                    tempFilePath: uploadFile.tempFilePath,
+                    dstFilePath: uploadFile.dstFilePath,
+                })
+                .then((ro) => {
+                    if (ro.result > 0) {
+                        uploadFile.status = UploadStatus.Success;
+
+                    }
+                });
+        },
     },
     persist: {
         // 部分持久化，上传中文件ID列表不持久化
@@ -269,6 +302,8 @@ interface State {
 export interface UploadFile {
     /** 上传文件ID */
     id: string;
+    /** 上传的文件名称 */
+    name: string;
     /** 任务ID */
     taskId: string;
     /** 上传文件的大小(单位是字节) */
@@ -279,8 +314,14 @@ export interface UploadFile {
     status: UploadStatus;
     /** 远端名称 */
     remoteName: string;
+    /** 远端基础路径 */
+    remoteBashPath: string;
     /** 上传目的地的目录(也是列路径) */
     dstDir: string;
+    /** 上传的临时文件的路径(文件存在时返回的，以供选择是否覆盖时提交给服务器做相应处理) */
+    tempFilePath?: string;
+    /** 上传的目的地文件的路径(文件存在时返回的，以供选择是否覆盖时提交给服务器做相应处理) */
+    dstFilePath?: string;
     /** 上传的url */
     url: string;
     /** 上传文件信息 */
@@ -312,8 +353,8 @@ export enum UploadStatus {
     Ready,
     /** 上传中 */
     Uploading,
-    /** 询问中 */
-    Questioning,
+    /** 询问是否覆盖 */
+    AskOverWrite,
     /** 上传成功 */
     Success,
     /** 上传失败 */

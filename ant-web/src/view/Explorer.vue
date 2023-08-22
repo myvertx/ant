@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { maxUploadings } from '@/env';
-import { ColumnMo } from '@/mo/ColumnMo';
 import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
 import { useRemoteStore } from '@/store/RemoteStore';
 import { fileSvc } from '@/svc/FileSvc';
 import { Upload, Refresh } from '@element-plus/icons-vue';
 import UploadFile from '@/component/UploadFile.vue';
-// import { UploadChangeParam, message } from 'ant-design-vue';
-// import { FileType } from 'ant-design-vue/lib/upload/interface';
-// import message from 'element-plus/es/components/message/index.js';
-// import { column } from 'element-plus/es/components/table-v2/src/common.js';
 
 // 上传组件
 const uploadRef = $ref<InstanceType<typeof UploadFile>>() as unknown as typeof UploadFile;

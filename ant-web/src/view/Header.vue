@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import { toggleTheme } from '@zougt/vite-plugin-theme-preprocessor/dist/browser-utils';
-import { CircleClose, Sunny, Moon, VideoPlay, VideoPause, Warning } from '@element-plus/icons-vue';
+import { CircleClose, Sunny, Moon, VideoPlay, VideoPause, Warning, CopyDocument } from '@element-plus/icons-vue';
 import { useDark, useToggle } from '@vueuse/core';
 import { byteConvert, formatPercent } from '@/util/comm';
 
@@ -15,7 +15,9 @@ let { isDark } = $(useThemeStore());
 // 远端
 let { curRemoteIndex, remotes } = $(useRemoteStore());
 // 上传
-let { uploadFiles, percent, getUploadingFile, startUpload, stopUpload, removeUploadFile } = $(useUploadStore());
+let { uploadFiles, percent, getUploadingFile, startUpload, stopUpload, removeUploadFile, overwrite } =
+    // 这个注释只为防止格式化会添加逗号
+    $(useUploadStore());
 
 // ****** 局部状态 ******
 // 上传中的文件
@@ -52,13 +54,15 @@ const toggleDark = useToggle(useDark());
                     </template>
                     <div class="upload-file" v-for="uploadFile in uploadFiles">
                         {{ void (uploadingFile = getUploadingFile(uploadFile.id)) }}
-                        <UploadFileIcon class="upload-file-icon" />
+                        <el-icon class="upload-file-icon">
+                            <UploadFileIcon />
+                        </el-icon>
                         <div class="detail">
-                            <div class="file-name">{{ uploadFile.file.name }}</div>
+                            <div class="file-name">{{ uploadFile.name }}</div>
                             <el-progress
                                 size="small"
                                 :percentage="
-                                    [UploadStatus.Success, UploadStatus.Questioning].includes(uploadFile.status)
+                                    [UploadStatus.Success, UploadStatus.AskOverWrite].includes(uploadFile.status)
                                         ? 100
                                         : uploadingFile?.percent
                                 "
@@ -68,9 +72,9 @@ const toggleDark = useToggle(useDark());
                                 <span v-if="uploadFile.status === UploadStatus.Preparing">准备中</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Ready">等待上传</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Uploading">上传中</span>
-                                <span v-else-if="uploadFile.status === UploadStatus.Questioning"
-                                    >文件已存在，是否覆盖？</span
-                                >
+                                <span v-else-if="uploadFile.status === UploadStatus.AskOverWrite" class="err">
+                                    文件已存在，请在右边点击按钮选择重命名或覆盖
+                                </span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Success">已完成</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Stop">已停止</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Fail" class="err">
@@ -86,22 +90,24 @@ const toggleDark = useToggle(useDark());
                                     ? '启动'
                                     : [UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)
                                     ? '停止'
+                                    : UploadStatus.AskOverWrite === uploadFile.status
+                                    ? '重命名'
                                     : '不能启动'
                             "
                         >
                             <div>
                                 <el-icon
-                                    class="action-icon"
                                     v-if="[UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)"
+                                    class="action-icon"
                                     @click="startUpload(uploadFile.id)"
                                 >
                                     <VideoPlay />
                                 </el-icon>
                                 <el-popconfirm
+                                    v-else-if="[UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)"
                                     title="你确定要停止该文件的上传?"
                                     confirm-button-text="确定"
                                     cancel-button-text="取消"
-                                    v-else-if="[UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)"
                                     @confirm="stopUpload(uploadFile.id)"
                                 >
                                     <template #reference>
@@ -110,14 +116,37 @@ const toggleDark = useToggle(useDark());
                                         </el-icon>
                                     </template>
                                 </el-popconfirm>
-                                <el-icon class="action-icon" v-else>
-                                    <Warning />
+                                <el-icon
+                                    v-else-if="UploadStatus.AskOverWrite === uploadFile.status"
+                                    class="action-icon rename-icon"
+                                    @click="overwrite(uploadFile, false)"
+                                >
+                                    <CopyDocument />
+                                </el-icon>
+                                <el-icon v-else class="action-icon">
+                                    <DisableStartIcon class="action-icon" />
                                 </el-icon>
                             </div>
                         </el-tooltip>
-                        <el-tooltip :content="uploadFile.status === UploadStatus.Success ? '清除记录' : '取消上传'">
+                        <el-tooltip
+                            :content="
+                                uploadFile.status === UploadStatus.Success
+                                    ? '清除记录'
+                                    : uploadFile.status === UploadStatus.AskOverWrite
+                                    ? '覆盖'
+                                    : '取消上传'
+                            "
+                        >
                             <div>
+                                <el-icon
+                                    class="action-icon"
+                                    v-if="uploadFile.status === UploadStatus.AskOverWrite"
+                                    @click="overwrite(uploadFile, true)"
+                                >
+                                    <Warning />
+                                </el-icon>
                                 <el-popconfirm
+                                    v-else
                                     title="你确定要取消该文件的上传?"
                                     confirm-button-text="确定"
                                     cancel-button-text="取消"
@@ -211,6 +240,9 @@ $header-height: 60px;
         &:hover {
             color: $icon-color-hover;
         }
+    }
+    .rename-icon {
+        width: 23px;
     }
 }
 </style>

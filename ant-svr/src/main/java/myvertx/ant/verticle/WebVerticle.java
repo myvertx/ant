@@ -3,6 +3,7 @@ package myvertx.ant.verticle;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -12,11 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
+import rebue.wheel.api.dic.ResultDic;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,7 +70,38 @@ public class WebVerticle extends AbstractWebVerticle {
                     }
                 });
 
-        // 文件是否存在
+        // 覆盖文件
+        router.post("/ant/file/overwrite")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final HttpServerResponse response = ctx.response();
+                    response.putHeader("Content-Type", "application/json");
+
+                    JsonObject body         = ctx.body().asJsonObject();
+                    Boolean    isOverWrite  = body.getBoolean("isOverWrite");
+                    Path       tempFilePath = Path.of(body.getString("tempFilePath"));
+                    Path       dstFilePath  = Path.of(body.getString("dstFilePath"));
+                    String     dstPathStr   = dstFilePath.toString();
+                    if (isOverWrite) {
+                        try {
+                            Files.delete(dstFilePath);
+                        } catch (IOException e) {
+                            log.warn("删除目的文件失败");
+                        }
+                    } else {
+                        String baseName  = FilenameUtils.removeExtension(dstPathStr);
+                        String extension = FilenameUtils.getExtension(dstPathStr);
+                        int    i         = 0;
+                        while (Files.exists(dstFilePath)) {
+                            i++;
+                            dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
+                        }
+                    }
+
+                    if (!move(response, tempFilePath, dstFilePath)) return;
+
+                    response.end(Json.encode(Vro.success("文件" + (isOverWrite ? "覆盖" : "保存") + "成功")));
+                });
 
 
         // 上传文件
@@ -88,7 +119,6 @@ public class WebVerticle extends AbstractWebVerticle {
                     MultiMap formAttributes = ctx.request().formAttributes();
                     log.debug("formAttributes: {}", formAttributes);
                     String           sDstDir     = formAttributes.get("dstDir");
-                    String           createDir   = formAttributes.get("createDir");
                     List<FileUpload> fileUploads = ctx.fileUploads();
                     if (fileUploads.isEmpty()) {
                         response.end(Json.encode(Vro.fail("上传内容为空，可能是上传未完成就刷新了页面")));
@@ -116,63 +146,71 @@ public class WebVerticle extends AbstractWebVerticle {
                     );
 
                     // 临时文件路径
-                    Path srcPath = Path.of(fileUpload.uploadedFileName());
-                    // 是否创建目录
-                    if (StringUtils.isNotBlank(createDir)) {
-                        sDstDir += File.separator + createDir;
-                    }
+                    Path tempFilePath = Path.of(fileUpload.uploadedFileName());
                     // 目的地目录
                     Path dstDir = Path.of(rootPath, sDstDir);
                     // 目的地文件路径
-                    Path   dstFilePath = Path.of(dstDir.toString(), fileUpload.fileName());
-                    String dstPathStr  = dstFilePath.toString();
-                    String baseName    = FilenameUtils.removeExtension(dstPathStr);
-                    String extension   = FilenameUtils.getExtension(dstPathStr);
-                    // 目的地目录
-                    dstDir = dstFilePath.getParent();
-                    // 如果目录不存在则创建
-                    if (Files.notExists(dstDir)) {
-                        try {
-                            Files.createDirectories(dstDir);
-                        } catch (IOException e) {
-                            String msg = "文件上传后创建目录出错";
-                            log.error(msg, e);
-                            try {
-                                Files.delete(srcPath);
-                            } catch (IOException ex) {
-                                log.error("删除上传的临时文件出错", e);
-                            }
-                            response.end(Json.encode(Vro.fail(msg, e.getMessage())));
-                            return;
-                        }
-                    }
-                    int i = 0;
-                    while (Files.exists(dstFilePath)) {
-                        i++;
-                        dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
-                    }
-                    log.debug("remove: {} -> {}", srcPath, dstFilePath);
-                    try {
-                        Files.move(srcPath,
-                                dstFilePath,
-                                StandardCopyOption.ATOMIC_MOVE);
-                    } catch (IOException e) {
-                        String msg = "文件上传后移动出错";
-                        log.error(msg, e);
-                        try {
-                            Files.delete(srcPath);
-                        } catch (IOException ex) {
-                            log.error("删除上传的临时文件出错", e);
-                        }
-                        response.end(Json.encode(Vro.fail(msg, e.getMessage())));
+                    Path dstFilePath = Path.of(dstDir.toString(), fileUpload.fileName());
+
+                    // 判断目的地文件是否存在
+                    if (Files.exists(dstFilePath)) {
+                        String msg = "文件已经存在";
+                        log.info("{}: {}", msg, dstFilePath);
+                        response.end(Json.encode(Vro.builder()
+                                .result(ResultDic.WARN)
+                                .code("FILE_EXIST")
+                                .msg(msg)
+                                .extra(JsonObject.of(
+                                        "tempFilePath", tempFilePath.toString(),
+                                        "dstFilePath", dstFilePath.toString()))
+                                .build()));
                         return;
                     }
+
+                    if (!move(response, tempFilePath, dstFilePath)) return;
+
                     response.end(Json.encode(Vro.success("文件上传成功", UploadRa.builder()
                             .fileDir(sDstDir)
                             .fileName(dstFilePath.getFileName().toString())
                             .fileFullPath(dstFilePath.toString())
                             .build())));
                 });
+    }
+
+    private static boolean move(HttpServerResponse response, Path tempFilePath, Path dstFilePath) {
+        Path dstDir;
+        // 目的地目录
+        dstDir = dstFilePath.getParent();
+        // 如果目录不存在则创建
+        if (Files.notExists(dstDir)) {
+            try {
+                Files.createDirectories(dstDir);
+            } catch (IOException e) {
+                String msg = "文件上传后创建目录出错";
+                log.error(msg, e);
+                try {
+                    Files.delete(tempFilePath);
+                } catch (IOException ex) {
+                    log.error("删除上传的临时文件出错", e);
+                }
+                response.end(Json.encode(Vro.fail(msg, e.getMessage())));
+                return false;
+            }
+        }
+
+        // 临时文件移动成正式文件
+        log.debug("remove: {} -> {}", tempFilePath, dstFilePath);
+        try {
+            Files.move(tempFilePath,
+                    dstFilePath,
+                    StandardCopyOption.ATOMIC_MOVE);
+            return true;
+        } catch (IOException e) {
+            String msg = "文件上传后移动出错";
+            log.error(msg, e);
+            response.end(Json.encode(Vro.fail(msg, e.getMessage())));
+            return false;
+        }
     }
 
 

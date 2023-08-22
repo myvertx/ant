@@ -44,7 +44,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
             // 自动加载组件
             Components({
                 // 查找自定义组件的位置
-                dirs: ['src/icon', 'src/component', 'src/view'],
+                dirs: ['src/assets/icon', 'src/component', 'src/view'],
                 resolvers: [
                     // // Auto register and design vue
                     // AntDesignVueResolver(),

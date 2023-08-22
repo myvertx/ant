@@ -14,8 +14,6 @@ let { runTasks, addTask } = $(useUploadStore());
 // ****** 局部状态 ******
 // file input dom
 const fileInputRef = $shallowRef(null) as unknown as HTMLInputElement;
-// 是否上传目录(否则表示上传文件)
-let isUploadDir = $ref(false);
 
 // ****** 属性 ******
 interface Props {
@@ -40,7 +38,6 @@ const {
  * @param isDir 上传的是否是目录(不是目录则是文件)
  */
 function openDialog(isDir: boolean) {
-    isUploadDir = isDir;
     fileInputRef.webkitdirectory = isDir ? true : false;
     fileInputRef.click();
 }
@@ -55,13 +52,10 @@ defineExpose({
 function onChange() {
     let files = fileInputRef.files as FileList;
     console.log(files);
-    addTask(curRemote.name, curColumnPath, curRemote.basePath + UPLOAD_FILE_URI, files);
+    addTask(curRemote, curColumnPath, curRemote.basePath + UPLOAD_FILE_URI, files);
     // 清空上次上传的文件，否则如果再上传同一个文件就不会触发onChange事件
     fileInputRef.value = '';
 }
-
-// ****** 暴露事件 ******
-// const emit = defineEmits(['onChange']);
 
 // 定时运行任务
 console.log('init runTasks');
