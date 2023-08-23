@@ -217,52 +217,70 @@ export const useUploadStore = defineStore('uploadStore', {
                 return;
             }
 
-            // 配置上传的数据
-            const formData = new FormData();
-            formData.append('id', uploadFile.id);
-            formData.append('dstDir', uploadFile.dstDir);
-            formData.append('hash', uploadFile.hash as string);
-            formData.append('file', uploadFile.file);
-            // 上传进度改变事件
-            const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
-                console.log('progressEvent', progressEvent);
-                if (progressEvent.upload) {
-                    const uploadingFile = this.getUploadingFile(uploadFile.id);
-                    if (uploadingFile) {
-                        uploadingFile.loaded = progressEvent.loaded;
-                        uploadingFile.percent = (progressEvent.progress as number) * 100;
-                        uploadingFile.rate = progressEvent.rate as number;
-                    }
+            const dstDir = uploadFile.dstDir;
+            const fileName = uploadFile.file.webkitRelativePath
+                ? uploadFile.file.webkitRelativePath
+                : uploadFile.file.name;
+            const hash = uploadFile.hash as string;
+
+            console.log('uploadFile.file', uploadFile.file);
+
+            fileSvc.exist(dstDir + '/' + fileName, hash).then((ro) => {
+                if (ro.result <= 0) {
+                    return;
                 }
-            };
-            // 上传
-            fileSvc
-                .upload(uploadFile.url, controller, formData, onUploadProgress)
-                .then((ro) => {
-                    if (ro.result > 0) {
-                        uploadFile.status = UploadStatus.Success;
-                    } else {
-                        if (ro.code === 'FILE_EXIST') {
-                            uploadFile.status = UploadStatus.AskOverWrite;
-                            // @ts-ignore
-                            uploadFile.tempFilePath = ro.extra.tempFilePath;
-                            // @ts-ignore
-                            uploadFile.dstFilePath = ro.extra.dstFilePath;
-                        } else {
-                            if (ro.code === 'INVALID_HASH') {
-                                uploadFile.hash = undefined;
-                            } else if (ro.code === 'PAGE_REFRESHED') {
-                                uploadFile.canStart = false;
-                            }
-                            uploadFile.status = UploadStatus.Fail;
-                            uploadFile.error = ro.msg;
+                // @ts-ignore
+                if (ro.extra.exist) {
+                    uploadFile.status = UploadStatus.Success;
+                    return;
+                }
+                // 配置上传的数据
+                const formData = new FormData();
+                formData.append('id', uploadFile.id);
+                formData.append('dstDir', dstDir);
+                formData.append('hash', hash);
+                formData.append('file', uploadFile.file);
+                // 上传进度改变事件
+                const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                    console.log('progressEvent', progressEvent);
+                    if (progressEvent.upload) {
+                        const uploadingFile = this.getUploadingFile(uploadFile.id);
+                        if (uploadingFile) {
+                            uploadingFile.loaded = progressEvent.loaded;
+                            uploadingFile.percent = (progressEvent.progress as number) * 100;
+                            uploadingFile.rate = progressEvent.rate as number;
                         }
                     }
-                })
-                .catch((ro) => {
-                    uploadFile.status = UploadStatus.Fail;
-                    uploadFile.error = ro.msg;
-                });
+                };
+                // 上传
+                fileSvc
+                    .upload(uploadFile.url, controller, formData, onUploadProgress)
+                    .then((ro) => {
+                        if (ro.result > 0) {
+                            uploadFile.status = UploadStatus.Success;
+                        } else {
+                            if (ro.code === 'FILE_EXIST') {
+                                uploadFile.status = UploadStatus.AskOverWrite;
+                                // @ts-ignore
+                                uploadFile.tempFilePath = ro.extra.tempFilePath;
+                                // @ts-ignore
+                                uploadFile.dstFilePath = ro.extra.dstFilePath;
+                            } else {
+                                if (ro.code === 'INVALID_HASH') {
+                                    uploadFile.hash = undefined;
+                                } else if (ro.code === 'PAGE_REFRESHED') {
+                                    uploadFile.canStart = false;
+                                }
+                                uploadFile.status = UploadStatus.Fail;
+                                uploadFile.error = ro.msg;
+                            }
+                        }
+                    })
+                    .catch((ro) => {
+                        uploadFile.status = UploadStatus.Fail;
+                        uploadFile.error = ro.msg;
+                    });
+            });
         },
         /**
          * 启动上传

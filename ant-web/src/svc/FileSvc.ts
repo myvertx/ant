@@ -1,7 +1,7 @@
 import { Ro } from '@/ro/Ro';
 
 import { useRemoteStore } from '@/store/RemoteStore';
-import { LIST_FILE_URI, OVERWRITE_URI } from '@/uri/FileUri';
+import { FILE_EXIST_URI, FILE_LIST_URI, FILE_OVERWRITE_URI } from '@/uri/FileUri';
 import { request } from '@/util/request';
 import { AxiosProgressEvent } from 'axios';
 
@@ -14,8 +14,16 @@ export const fileSvc = {
         let { curRemote } = $(useRemoteStore());
         // 发出get请求
         return request.get({
-            url: curRemote.basePath + LIST_FILE_URI,
+            url: curRemote.basePath + FILE_LIST_URI,
             params: { path },
+        });
+    },
+    exist(dstFilePath: string, hash: string): Promise<Ro> {
+        let { curRemote } = $(useRemoteStore());
+        // 发出get请求
+        return request.get({
+            url: curRemote.basePath + FILE_EXIST_URI,
+            params: { dstFilePath, hash },
         });
     },
     /**
@@ -49,7 +57,7 @@ export const fileSvc = {
      */
     overwrite(remoteBasePath: string, data: any): Promise<Ro> {
         return request.post({
-            url: remoteBasePath + OVERWRITE_URI,
+            url: remoteBasePath + FILE_OVERWRITE_URI,
             data,
         });
     },

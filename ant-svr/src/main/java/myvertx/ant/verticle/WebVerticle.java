@@ -1,6 +1,7 @@
 package myvertx.ant.verticle;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -12,6 +13,7 @@ import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import myvertx.ant.cq.ErrorCodeCq;
 import myvertx.ant.ra.FileExistRa;
+import myvertx.ant.ra.FileOverwriteRa;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import myvertx.ant.util.DigestUtils;
@@ -77,39 +79,39 @@ public class WebVerticle extends AbstractWebVerticle {
                     }
                 });
 
-        // 覆盖文件
-        router.post("/ant/file/overwrite")
+        // 判断文件是否存在
+        router.get("/ant/file/exist")
                 .handler(BodyHandler.create())
                 .handler(ctx -> {
-                    final HttpServerResponse response = ctx.response();
+                    HttpServerRequest  request  = ctx.request();
+                    HttpServerResponse response = ctx.response();
                     response.putHeader("Content-Type", "application/json");
 
-                    JsonObject body         = ctx.body().asJsonObject();
-                    Boolean    isOverWrite  = body.getBoolean("isOverWrite");
-                    Path       tempFilePath = Path.of(body.getString("tempFilePath"));
-                    Path       dstFilePath  = Path.of(body.getString("dstFilePath"));
-                    String     dstPathStr   = dstFilePath.toString();
-                    if (isOverWrite) {
+                    String sDstFilePath = request.getParam("dstFilePath");
+                    String hash         = request.getParam("hash");
+                    // 目的地文件路径
+                    Path dstFilePath = Path.of(rootPath, sDstFilePath);
+
+                    // 判断目的地文件是否存在
+                    if (Files.exists(dstFilePath)) {
                         try {
-                            Files.delete(dstFilePath);
+                            String dstHash = DigestUtils.hash(dstFilePath);
+                            // 如果hash相同，则删除临时文件直接返回成功
+                            if (dstHash.equalsIgnoreCase(hash)) {
+                                response.end(Json.encode(Vro.success("文件已存在", FileExistRa.builder()
+                                        .exist(true)
+                                        .build())));
+                                return;
+                            }
                         } catch (IOException e) {
-                            log.warn("删除目的文件失败");
-                        }
-                    } else {
-                        String baseName  = FilenameUtils.removeExtension(dstPathStr);
-                        String extension = FilenameUtils.getExtension(dstPathStr);
-                        int    i         = 0;
-                        while (Files.exists(dstFilePath)) {
-                            i++;
-                            dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
+                            response.end(Json.encode(Vro.fail("读取已经存在的目的地文件出错")));
+                            return;
                         }
                     }
-
-                    if (!move(response, tempFilePath, dstFilePath)) return;
-
-                    response.end(Json.encode(Vro.success("文件" + (isOverWrite ? "覆盖" : "保存") + "成功")));
+                    response.end(Json.encode(Vro.success("文件不存在", FileExistRa.builder()
+                            .exist(false)
+                            .build())));
                 });
-
 
         // 上传文件
         BodyHandler bodyHandler = BodyHandler.create()
@@ -184,28 +186,11 @@ public class WebVerticle extends AbstractWebVerticle {
                     // 判断目的地文件是否存在
                     if (Files.exists(dstFilePath)) {
                         String msg = "文件已经存在";
-                        try {
-                            String dstHash = DigestUtils.hash(tempFilePath);
-                            // 如果hash相同，则删除临时文件直接返回成功
-                            if (dstHash.equalsIgnoreCase(hash)) {
-                                try {
-                                    Files.delete(tempFilePath);
-                                } catch (IOException e) {
-                                    log.error("删除上传的临时文件出错", e);
-                                }
-                                responseUploadSuccess(response, sDstDir, dstFilePath);
-                                return;
-                            }
-                        } catch (IOException e) {
-                            response.end(Json.encode(Vro.fail("读取已经存在的目的地文件出错: " + fileUpload.fileName())));
-                            return;
-                        }
-
                         response.end(Json.encode(Vro.builder()
                                 .result(ResultDic.WARN)
                                 .code(ErrorCodeCq.FILE_EXIST)
                                 .msg(msg)
-                                .extra(FileExistRa.builder()
+                                .extra(FileOverwriteRa.builder()
                                         .tempFilePath(tempFilePath.toString())
                                         .dstFilePath(dstFilePath.toString())
                                         .build())
@@ -216,6 +201,39 @@ public class WebVerticle extends AbstractWebVerticle {
                     if (!move(response, tempFilePath, dstFilePath)) return;
 
                     responseUploadSuccess(response, sDstDir, dstFilePath);
+                });
+
+        // 覆盖文件
+        router.post("/ant/file/overwrite")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final HttpServerResponse response = ctx.response();
+                    response.putHeader("Content-Type", "application/json");
+
+                    JsonObject body         = ctx.body().asJsonObject();
+                    Boolean    isOverWrite  = body.getBoolean("isOverWrite");
+                    Path       tempFilePath = Path.of(body.getString("tempFilePath"));
+                    Path       dstFilePath  = Path.of(body.getString("dstFilePath"));
+                    String     dstPathStr   = dstFilePath.toString();
+                    if (isOverWrite) {
+                        try {
+                            Files.delete(dstFilePath);
+                        } catch (IOException e) {
+                            log.warn("删除目的文件失败");
+                        }
+                    } else {
+                        String baseName  = FilenameUtils.removeExtension(dstPathStr);
+                        String extension = FilenameUtils.getExtension(dstPathStr);
+                        int    i         = 0;
+                        while (Files.exists(dstFilePath)) {
+                            i++;
+                            dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
+                        }
+                    }
+
+                    if (!move(response, tempFilePath, dstFilePath)) return;
+
+                    response.end(Json.encode(Vro.success("文件" + (isOverWrite ? "覆盖" : "保存") + "成功")));
                 });
     }
 

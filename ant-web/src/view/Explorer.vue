@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import UploadFile from '@/component/UploadFile.vue';
 import { FileMo } from '@/mo/FileMo';
 import { Ro } from '@/ro/Ro';
 import { useRemoteStore } from '@/store/RemoteStore';
 import { fileSvc } from '@/svc/FileSvc';
-import { Upload, Refresh } from '@element-plus/icons-vue';
-import UploadFile from '@/component/UploadFile.vue';
+import { Refresh, Upload } from '@element-plus/icons-vue';
 
 // 上传组件
 const uploadRef = $ref<InstanceType<typeof UploadFile>>() as unknown as typeof UploadFile;
@@ -24,12 +24,6 @@ const {
 } =
     // 这里强制折行，否则格式化后会多一个逗号
     $(useRemoteStore());
-// 上传
-// let { fileList, cancelUpload } = $(useUploadStore());
-
-// ****** 局部状态 ******
-// 要上传的文件列表
-// let uploadFileList = reactive<UploadUserFile[]>([]); // 状态如果是数组或对象，用 reactive 方法创建
 
 /**
  * 选择文件事件
@@ -54,103 +48,6 @@ function onSelect(file: FileMo, fileIndex: number) {
             }
         });
 }
-
-// /**
-//  * 显示上传对话框
-//  * @param isDir 上传的是否是目录(不是目录则是文件)
-//  */
-// function showUploadDialog(isDir: boolean) {
-//     isUploadDir = isDir;
-//     console.log(fileInputRef);
-
-//     const fileInput = fileInputRef.value as unknown as HTMLInputElement;
-
-//     nextTick(() => {
-//         fileInput.webkitdirectory = isDir ? true : false;
-//         fileInput.click();
-//     });
-// }
-
-/** 上传data参数 */
-// function uploadData(): Record<string, any> {
-//     console.log('uploadFileList', uploadFileList);
-//     const data = {
-//         fileDir: curColumnPath,
-//         uploadFileList,
-//     };
-//     console.log('data', data);
-//     return data;
-//     // const fileNameWithDir = file.webkitRelativePath as string;
-//     // let createDir = '';
-//     // if (fileNameWithDir) {
-//     //     const index = fileNameWithDir.indexOf('/');
-//     //     if (index !== -1) {
-//     //         createDir = fileNameWithDir.substring(0, index);
-//     //     }
-//     // }
-
-//     // const data = {
-//     //     uid: file.uid,
-//     //     fileName: file.name,
-//     //     fileSize: file.size,
-//     //     lastModified: file.lastModified,
-//     //     fileDir: column.path,
-//     //     /** 上传后要创建的目录 */
-//     //     createDir,
-//     // };
-//     // return data;
-// }
-
-// /**
-//  * 上传状态改变
-//  */
-// function onUploadChange() {
-//     const fileInput = fileInputRef.value as unknown as HTMLInputElement;
-//     const files = fileInput.files as FileList;
-//     console.log(files);
-//     for (const file of files) {
-//     }
-// }
-
-/**
- * 上传状态改变
- */
-// function onUploadChange1(info: UploadChangeParam) {
-//     if (info.file.status === 'uploading') {
-//         // 判断是否是因为超过最大文件数不能上传
-//         if (info.file.percent === 0) {
-//             for (const file of info.fileList) {
-//                 if (file.uid === info.file.uid) {
-//                     return;
-//                 }
-//             }
-//             message.warn(`不能上传${info.file.name}文件，最多只能同时上传${maxUploadings}个文件`);
-//         }
-//     } else if (info.file.status === 'done') {
-//         console.log('onUploadChange', info);
-//         const file = info.file;
-//         cancelUpload(file);
-//         const fileNameWithDir = file.originFileObj?.webkitRelativePath as string;
-//         const ro = file.response.extra;
-//         if (fileNameWithDir) {
-//             const fileDir = ro.fileDir;
-//             let index = fileNameWithDir.indexOf('/');
-//             const dirName = fileNameWithDir.substring(0, index);
-//             index = fileDir.lastIndexOf('/');
-//             const columnPath = fileDir.substring(0, index);
-//             addFileInColumn(columnPath, { isDir: true, name: dirName, path: fileDir });
-//         } else {
-//             addFileInColumn(ro.fileDir, { isDir: false, name: ro.fileName, path: ro.fileFullPath });
-//         }
-//         message.success(`${info.file.name} 文件上传成功！`);
-//     } else if (info.file.status === 'error') {
-//         if (info.file.error?.status === 413) {
-//             message.error(`${info.file.name} 文件太大，禁止上传到服务器！`);
-//             return;
-//         }
-//         message.error(`${info.file.name} 文件上传失败！`);
-//     }
-// }
 </script>
 
 <template>
@@ -185,51 +82,6 @@ function onSelect(file: FileMo, fileIndex: number) {
                 :data="column.files"
                 @select="(file: FileMo, fileIndex:number) => onSelect(file, fileIndex)"
             />
-            <!-- <el-dropdown trigger="contextmenu">
-                <SelectList
-                    :selectedItemIndices="column.selectedFileIndices"
-                    :data="column.files"
-                    @select="(file: FileMo, fileIndex:number) => onSelect(file, fileIndex, columnIndex)"
-                />
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item :icon="Upload" command="uploadFolder"
-                            >上传文件夹 -->
-            <!-- <el-upload
-                            v-model:file-list="fileList"
-                            directory
-                            :data="(file:FileType) => uploadData(file, column)"
-                            :maxCount="maxUploadings"
-                            :action="curRemote.basePath + UPLOAD_FILE_URI"
-                            :show-file-list="false"
-                            @change="onUploadChange"
-                            >
-                            <span class="upload-dir">
-                                <el-icon><Upload /></el-icon>
-                                &nbsp;&nbsp;上传文件夹
-                            </span>
-                        </el-upload> -->
-            <!-- </el-dropdown-item>
-                        <el-dropdown-item :icon="Upload" command="uploadFile"
-                            >上传文件 -->
-            <!-- <el-upload
-                            multiple
-                            v-model:file-list="fileList"
-                            :data="(file:FileType) => uploadData(file, column)"
-                            :maxCount="maxUploadings"
-                            :action="curRemote.basePath + UPLOAD_FILE_URI"
-                            :show-file-list="false"
-                            @change="onUploadChange"
-                        >
-                        <span class="upload-file">
-                            <el-icon><Upload /></el-icon>
-                            &nbsp;&nbsp;上传文件
-                        </span>
-                    </el-upload> -->
-            <!-- </el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown> -->
         </div>
         <Splitter @resized="(size:string) => setPathColumnWidth(column.path, size)" />
     </template>

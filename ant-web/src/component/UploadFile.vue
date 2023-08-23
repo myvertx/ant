@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRemoteStore } from '@/store/RemoteStore';
 import { useUploadStore } from '@/store/UploadStore';
-import { UPLOAD_FILE_URI } from '@/uri/FileUri';
+import { FILE_UPLOAD_URI } from '@/uri/FileUri';
 
 // ****** 中央状态 ******
 // 远端
@@ -52,7 +52,7 @@ defineExpose({
 function onChange() {
     let files = fileInputRef.files as FileList;
     console.log(files);
-    addTask(curRemote, curColumnPath, curRemote.basePath + UPLOAD_FILE_URI, files);
+    addTask(curRemote, curColumnPath, curRemote.basePath + FILE_UPLOAD_URI, files);
     // 清空上次上传的文件，否则如果再上传同一个文件就不会触发onChange事件
     fileInputRef.value = '';
 }

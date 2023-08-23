@@ -9,9 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FileExistRa {
+public class FileOverwriteRa {
     /**
-     * 文件是否已存在
+     * 临时文件路径
      */
-    private Boolean exist;
+    private String tempFilePath;
+    /**
+     * 目的地文件路径
+     */
+    private String dstFilePath;
 }
