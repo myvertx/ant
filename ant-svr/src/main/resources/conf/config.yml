@@ -1,4 +1,7 @@
 main:
+  # 上传临时文件的路径(相对于运行程序的路径下)
+  temp: /temp
+  # 管理目录的根路径(相对于运行程序的路径下)
   root: /root
 #  uploadFileSizeLimit: 2000M
 web:

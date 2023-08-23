@@ -278,6 +278,9 @@ export const useUploadStore = defineStore('uploadStore', {
                 .then((ro) => {
                     if (ro.result > 0) {
                         uploadFile.status = UploadStatus.Success;
+                    } else if (ro.code === 'TEMP_FILE_REMOVED') {
+                        // 上传的临时文件已被删除
+                        uploadFile.status = UploadStatus.Ready;
                     }
                 });
         },

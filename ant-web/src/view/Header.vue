@@ -73,7 +73,7 @@ const toggleDark = useToggle(useDark());
                                 <span v-else-if="uploadFile.status === UploadStatus.Ready">等待上传</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Uploading">上传中</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.AskOverWrite" class="err">
-                                    文件已存在，请在右边点击按钮选择重命名或覆盖
+                                    目的地文件已存在，请在右边的按钮选择是重命名原文件还是覆盖目的地文件
                                 </span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Success">已完成</span>
                                 <span v-else-if="uploadFile.status === UploadStatus.Stop">已停止</span>

@@ -5,7 +5,12 @@ import lombok.Data;
 @Data
 public class MainProperties {
     /**
-     * 根目录路径
+     * 上传临时文件的路径(相对于运行程序的路径下)
+     */
+    private String temp;
+
+    /**
+     * 管理目录的根路径(相对于运行程序的路径下)
      */
     private String root;
 

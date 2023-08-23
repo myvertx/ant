@@ -22,6 +22,13 @@ public class MainModule extends AbstractModule {
 
     @Singleton
     @Provides
+    @Named("tempPath")
+    public String getTempPath(MainProperties mainProperties) {
+        return Paths.get(FileUtils.getClassesPath(), mainProperties.getTemp()).toString();
+    }
+
+    @Singleton
+    @Provides
     @Named("rootPath")
     public String getRootPath(MainProperties mainProperties) {
         return Paths.get(FileUtils.getClassesPath(), mainProperties.getRoot()).toString();

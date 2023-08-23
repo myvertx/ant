@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -31,11 +32,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class WebVerticle extends AbstractWebVerticle {
     @Inject
+    @Named("tempPath")
+    private String tempPath;
+    @Inject
     @Named("rootPath")
     private String rootPath;
     @Inject
     @Named("uploadFileSizeLimit")
-    private Long   uploadFileSizeLimit;
+    private Long uploadFileSizeLimit;
 
     @Override
     protected void configRouter(final Router router) {
@@ -54,8 +58,8 @@ public class WebVerticle extends AbstractWebVerticle {
                         response.end(Json.encode(Vro.illegalArgument("path参数不能有多个")));
                         return;
                     }
-                    String pathParam   = pathParams.get(0);
-                    Path   dirFullPath = Path.of(rootPath, pathParam);
+                    String pathParam = pathParams.get(0);
+                    Path dirFullPath = Path.of(rootPath, pathParam);
                     log.debug("指定目录的全路径为: {}", dirFullPath);
 
                     try (Stream<Path> stream = Files.list(dirFullPath)) {
@@ -80,11 +84,11 @@ public class WebVerticle extends AbstractWebVerticle {
                     final HttpServerResponse response = ctx.response();
                     response.putHeader("Content-Type", "application/json");
 
-                    JsonObject body         = ctx.body().asJsonObject();
-                    Boolean    isOverWrite  = body.getBoolean("isOverWrite");
-                    Path       tempFilePath = Path.of(body.getString("tempFilePath"));
-                    Path       dstFilePath  = Path.of(body.getString("dstFilePath"));
-                    String     dstPathStr   = dstFilePath.toString();
+                    JsonObject body = ctx.body().asJsonObject();
+                    Boolean isOverWrite = body.getBoolean("isOverWrite");
+                    Path tempFilePath = Path.of(body.getString("tempFilePath"));
+                    Path dstFilePath = Path.of(body.getString("dstFilePath"));
+                    String dstPathStr = dstFilePath.toString();
                     if (isOverWrite) {
                         try {
                             Files.delete(dstFilePath);
@@ -92,9 +96,9 @@ public class WebVerticle extends AbstractWebVerticle {
                             log.warn("删除目的文件失败");
                         }
                     } else {
-                        String baseName  = FilenameUtils.removeExtension(dstPathStr);
+                        String baseName = FilenameUtils.removeExtension(dstPathStr);
                         String extension = FilenameUtils.getExtension(dstPathStr);
-                        int    i         = 0;
+                        int i = 0;
                         while (Files.exists(dstFilePath)) {
                             i++;
                             dstFilePath = Path.of(baseName + "(" + i + ")." + extension);
@@ -109,7 +113,7 @@ public class WebVerticle extends AbstractWebVerticle {
 
         // 上传文件
         BodyHandler bodyHandler = BodyHandler.create()
-                .setUploadsDirectory(rootPath);
+                .setUploadsDirectory(tempPath);
         if (uploadFileSizeLimit != 0) {
             bodyHandler.setBodyLimit(uploadFileSizeLimit);
         }
@@ -121,8 +125,8 @@ public class WebVerticle extends AbstractWebVerticle {
 
                     MultiMap formAttributes = ctx.request().formAttributes();
                     log.debug("formAttributes: {}", formAttributes);
-                    String           sDstDir     = formAttributes.get("dstDir");
-                    String           hash        = formAttributes.get("hash");
+                    String sDstDir = formAttributes.get("dstDir");
+                    String hash = formAttributes.get("hash");
                     List<FileUpload> fileUploads = ctx.fileUploads();
                     if (fileUploads.isEmpty()) {
                         response.end(Json.encode(Vro.fail("上传内容为空，可能是上传未完成就刷新了页面")));
@@ -223,6 +227,15 @@ public class WebVerticle extends AbstractWebVerticle {
                     dstFilePath,
                     StandardCopyOption.ATOMIC_MOVE);
             return true;
+        } catch (NoSuchFileException e) {
+            String msg = "上传的临时文件已被删除";
+            log.error(msg, e);
+            response.end(Json.encode(Vro.builder()
+                    .result(ResultDic.FAIL)
+                    .msg(msg)
+                    .code("TEMP_FILE_REMOVED")
+                    .build()));
+            return false;
         } catch (IOException e) {
             String msg = "文件上传后移动出错";
             log.error(msg, e);
