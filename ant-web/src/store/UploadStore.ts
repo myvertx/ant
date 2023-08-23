@@ -4,9 +4,7 @@ import { RemoteMo } from '@/mo/RemoteMo';
 import { useRemoteStore } from './RemoteStore.ts';
 import { fileSvc } from '@/svc/FileSvc';
 import { AxiosProgressEvent } from 'axios';
-// @ts-ignore
-import sha256 from 'crypto-js/sha256';
-import * as CryptoJS from 'crypto-js';
+import CryptoJS from 'crypto-js';
 
 import { ulid } from 'ulid';
 
@@ -63,9 +61,10 @@ export const useUploadStore = defineStore('uploadStore', {
                 if (uploadFile.status === UploadStatus.Preparing && !uploadFile.hash) {
                     const reader = new FileReader();
                     reader.onload = () => {
+                        const sha256 = CryptoJS.algo.SHA256.create();
                         // @ts-ignore
-                        const result = CryptoJS.lib.WordArray.create(reader.result);
-                        const hash = sha256(result).toString();
+                        sha256.update(CryptoJS.lib.WordArray.create(reader.result));
+                        const hash = sha256.finalize().toString();
                         uploadFile.hash = hash;
                         uploadFile.status = UploadStatus.Ready;
                     };
