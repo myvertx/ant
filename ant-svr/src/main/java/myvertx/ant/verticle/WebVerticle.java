@@ -190,7 +190,7 @@ public class WebVerticle extends AbstractWebVerticle {
                             if (dstHash.equalsIgnoreCase(hash)) {
                                 try {
                                     Files.delete(tempFilePath);
-                                } catch (IOException ex) {
+                                } catch (IOException e) {
                                     log.error("删除上传的临时文件出错", e);
                                 }
                                 responseUploadSuccess(response, sDstDir, dstFilePath);
@@ -235,15 +235,15 @@ public class WebVerticle extends AbstractWebVerticle {
         if (Files.notExists(dstDir)) {
             try {
                 Files.createDirectories(dstDir);
-            } catch (IOException e) {
+            } catch (IOException e1) {
                 String msg = "文件上传后创建目录出错";
-                log.error(msg, e);
+                log.error(msg, e1);
                 try {
                     Files.delete(tempFilePath);
-                } catch (IOException ex) {
-                    log.error("删除上传的临时文件出错", e);
+                } catch (IOException e2) {
+                    log.error("删除上传的临时文件出错", e2);
                 }
-                response.end(Json.encode(Vro.fail(msg, e.getMessage())));
+                response.end(Json.encode(Vro.fail(msg, e1.getMessage())));
                 return false;
             }
         }
