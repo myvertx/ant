@@ -82,14 +82,26 @@ const toggleDark = useToggle(useDark());
                                 </span>
                                 <span v-else class="err">未知状态</span>
                                 <span
-                                    >---- {{ byteConvert(uploadingFile?.loaded || 0) }}/{{
-                                        byteConvert(uploadFile.size || 0)
-                                    }}</span
+                                    v-if="![UploadStatus.AskOverWrite, UploadStatus.Fail].includes(uploadFile.status)"
                                 >
+                                    ----
+                                    {{
+                                        uploadFile.status === UploadStatus.Uploading
+                                            ? byteConvert(uploadingFile?.loaded || 0) + '/'
+                                            : ''
+                                    }}
+                                    {{ byteConvert(uploadFile.size || 0) }}
+                                    {{
+                                        uploadFile.status === UploadStatus.Uploading
+                                            ? '(' + byteConvert(uploadingFile?.rate || 0) + ')'
+                                            : ''
+                                    }}
+                                </span>
                             </div>
                         </div>
                         <el-tooltip
                             :content="
+                                uploadFile.canStart &&
                                 [UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)
                                     ? '启动'
                                     : [UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)
@@ -101,7 +113,10 @@ const toggleDark = useToggle(useDark());
                         >
                             <div>
                                 <el-icon
-                                    v-if="[UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)"
+                                    v-if="
+                                        uploadFile.canStart &&
+                                        [UploadStatus.Stop, UploadStatus.Fail].includes(uploadFile.status)
+                                    "
                                     class="action-icon"
                                     @click="startUpload(uploadFile.id)"
                                 >

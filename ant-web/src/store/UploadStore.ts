@@ -94,6 +94,7 @@ export const useUploadStore = defineStore('uploadStore', {
                     status: UploadStatus.Preparing,
                     url,
                     file,
+                    canStart: true,
                 });
             }
             this.calcHash();
@@ -206,6 +207,14 @@ export const useUploadStore = defineStore('uploadStore', {
             const controller = new AbortController();
             // 添加到上传中的文件ID列表
             this.uploadingFiles.push({ id: uploadFile.id, controller, loaded: 0, percent: 0, rate: 0 });
+
+            if (!uploadFile.file.name) {
+                uploadFile.status = UploadStatus.Fail;
+                uploadFile.error = '上传未完成前页面已经被刷新，请重新上传该文件';
+                uploadFile.canStart = false;
+                return;
+            }
+
             // 配置上传的数据
             const formData = new FormData();
             formData.append('id', uploadFile.id);
@@ -240,6 +249,8 @@ export const useUploadStore = defineStore('uploadStore', {
                         } else {
                             if (ro.code === 'INVALID_HASH') {
                                 uploadFile.hash = undefined;
+                            } else if (ro.code === 'PAGE_REFRESHED') {
+                                uploadFile.canStart = false;
                             }
                             uploadFile.status = UploadStatus.Fail;
                             uploadFile.error = ro.msg;
@@ -344,6 +355,8 @@ export interface UploadFile {
     file: File;
     /** 上传错误时提示的信息 */
     error?: string;
+    /** 出错后是否能被启动(默认可以启动) */
+    canStart: boolean;
 }
 
 export interface UploadingFile {
