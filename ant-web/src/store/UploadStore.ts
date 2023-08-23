@@ -1,12 +1,11 @@
 // 你可以对 `defineStore()` 的返回值进行任意命名，但最好使用 store 的名字，同时以 `use` 开头且以 `Store` 结尾。(比如 `useUserStore`，`useCartStore`，`useProductStore`)
 
 import { RemoteMo } from '@/mo/RemoteMo';
-import { useRemoteStore } from './RemoteStore.ts';
 import { fileSvc } from '@/svc/FileSvc';
 import { AxiosProgressEvent } from 'axios';
-import CryptoJS from 'crypto-js';
-
 import { ulid } from 'ulid';
+import { useRemoteStore } from './RemoteStore.ts';
+import HashWorker from '@/worker/HashWorker.ts?worker';
 
 // import { UploadFile } from 'element-plus';
 
@@ -56,20 +55,19 @@ export const useUploadStore = defineStore('uploadStore', {
         /**
          * 计算hash值
          */
-        calcHash() {
-            for (const uploadFile of this.uploadFiles) {
-                if (uploadFile.status === UploadStatus.Preparing && !uploadFile.hash) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const sha256 = CryptoJS.algo.SHA256.create();
-                        // @ts-ignore
-                        sha256.update(CryptoJS.lib.WordArray.create(reader.result));
-                        const hash = sha256.finalize().toString();
-                        uploadFile.hash = hash;
-                        uploadFile.status = UploadStatus.Ready;
-                    };
-                    reader.readAsArrayBuffer(uploadFile.file);
-                }
+        calcHash(uploadFileId: string) {
+            console.log('calcHash');
+            const uploadFile = this.getUploadFile(uploadFileId);
+            if (uploadFile) {
+                const hashWorker = new HashWorker();
+                hashWorker.postMessage(uploadFile.file);
+                hashWorker.onmessage = function (e) {
+                    console.log('Received message', e.data);
+                    const hash = e.data;
+                    uploadFile.hash = hash;
+                    uploadFile.status = UploadStatus.Ready;
+                    hashWorker.terminate();
+                };
             }
         },
         /**
@@ -82,8 +80,9 @@ export const useUploadStore = defineStore('uploadStore', {
         addTask(remote: RemoteMo, dstDir: string, url: string, files: FileList) {
             const taskId = ulid();
             for (const file of files) {
+                const uploadFileId = ulid();
                 this.uploadFiles.push({
-                    id: ulid(),
+                    id: uploadFileId,
                     name: file.name,
                     taskId,
                     size: file.size,
@@ -95,8 +94,8 @@ export const useUploadStore = defineStore('uploadStore', {
                     file,
                     canStart: true,
                 });
+                this.calcHash(uploadFileId);
             }
-            this.calcHash();
         },
         /** 删除上传文件 */
         removeUploadFile(uploadFileId: string) {
@@ -272,7 +271,7 @@ export const useUploadStore = defineStore('uploadStore', {
                 uploadFile.status = UploadStatus.Ready;
             } else {
                 uploadFile.status = UploadStatus.Preparing;
-                this.calcHash();
+                this.calcHash(uploadFile.id);
             }
         },
         /**
