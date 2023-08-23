@@ -50,7 +50,7 @@ const toggleDark = useToggle(useDark());
                     trigger="click"
                 >
                     <template #reference>
-                        <el-progress class="upload-progress" type="circle" :percentage="percent" :width="40" />
+                        <el-progress class="upload-progress" type="circle" :percentage="percent || 0" :width="40" />
                     </template>
                     <div class="upload-file" v-for="uploadFile in uploadFiles">
                         {{ void (uploadingFile = getUploadingFile(uploadFile.id)) }}
@@ -81,7 +81,11 @@ const toggleDark = useToggle(useDark());
                                     错误: {{ uploadFile.error }}
                                 </span>
                                 <span v-else class="err">未知状态</span>
-                                <span>---- {{ byteConvert(uploadFile.size || 0) }}</span>
+                                <span
+                                    >---- {{ byteConvert(uploadingFile?.loaded || 0) }}/{{
+                                        byteConvert(uploadFile.size || 0)
+                                    }}</span
+                                >
                             </div>
                         </div>
                         <el-tooltip

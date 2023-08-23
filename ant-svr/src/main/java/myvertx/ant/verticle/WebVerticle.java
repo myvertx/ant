@@ -10,6 +10,8 @@ import io.vertx.ext.web.handler.BodyHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
+import myvertx.ant.cq.ErrorCodeCq;
+import myvertx.ant.ra.FileExistRa;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -161,7 +163,11 @@ public class WebVerticle extends AbstractWebVerticle {
                         String correctHash = DigestUtils.sha256Hex(dataInputStream);
                         log.debug("正确的hash是: {}", correctHash);
                         if (!correctHash.equalsIgnoreCase(hash)) {
-                            response.end(Json.encode(Vro.fail("文件校验不正确，请重新传输: " + fileUpload.fileName())));
+                            response.end(Json.encode(Vro.builder()
+                                    .result(ResultDic.FAIL)
+                                    .code(ErrorCodeCq.INVALID_HASH)
+                                    .msg("文件校验不正确，请重新传输: " + fileUpload.fileName())
+                                    .build()));
                             return;
                         }
                     } catch (IOException e) {
@@ -180,11 +186,12 @@ public class WebVerticle extends AbstractWebVerticle {
                         log.info("{}: {}", msg, dstFilePath);
                         response.end(Json.encode(Vro.builder()
                                 .result(ResultDic.WARN)
-                                .code("FILE_EXIST")
+                                .code(ErrorCodeCq.FILE_EXIST)
                                 .msg(msg)
-                                .extra(JsonObject.of(
-                                        "tempFilePath", tempFilePath.toString(),
-                                        "dstFilePath", dstFilePath.toString()))
+                                .extra(FileExistRa.builder()
+                                        .tempFilePath(tempFilePath.toString())
+                                        .dstFilePath(dstFilePath.toString())
+                                        .build())
                                 .build()));
                         return;
                     }
@@ -233,7 +240,7 @@ public class WebVerticle extends AbstractWebVerticle {
             response.end(Json.encode(Vro.builder()
                     .result(ResultDic.FAIL)
                     .msg(msg)
-                    .code("TEMP_FILE_REMOVED")
+                    .code(ErrorCodeCq.TEMP_FILE_REMOVED)
                     .build()));
             return false;
         } catch (IOException e) {

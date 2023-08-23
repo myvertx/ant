@@ -28,22 +28,30 @@ export const useUploadStore = defineStore('uploadStore', {
     getters: {
         /** 所有文件上传的平均进度 */
         percent(state: State) {
-            // 计算已上传的总字节数
-            let uploadedSum = 0;
+            // // 计算已上传的总字节数
+            // let uploadedSum = 0;
+            // for (const loadingFile of state.uploadingFiles) {
+            //     uploadedSum += loadingFile.loaded || 0;
+            // }
+
+            // // 计算总共要上传的字节数
+            // let total = 0;
+            // for (const uploadFile of state.uploadFiles) {
+            //     if ([UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)) {
+            //         total += uploadFile.size;
+            //     }
+            // }
+
+            // // 平均求总进度
+            // return total ? uploadedSum / total : 0;
+
+            let percentSum = 0;
             for (const loadingFile of state.uploadingFiles) {
-                uploadedSum += loadingFile.loaded || 0;
+                console.log('loadingFile.percent', loadingFile.percent);
+                percentSum += loadingFile.percent;
             }
-
-            // 计算总共要上传的字节数
-            let total = 0;
-            for (const uploadFile of state.uploadFiles) {
-                if ([UploadStatus.Preparing, UploadStatus.Ready, UploadStatus.Uploading].includes(uploadFile.status)) {
-                    total += uploadFile.size;
-                }
-            }
-
-            // 平均求总进度
-            return total ? uploadedSum / total : 0;
+            console.log('percentSum', percentSum);
+            return percentSum / state.uploadingFiles.length;
         },
     },
     actions: {
@@ -115,22 +123,17 @@ export const useUploadStore = defineStore('uploadStore', {
                         uploadFile.status = UploadStatus.Ready;
                     }
 
-                    // 判断是否要上传
-                    if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile.id)) {
-                        if (idleCount > 0) {
-                            this.upload(uploadFile);
-                            idleCount = this.maxCount - this.uploadingFiles.length;
-                        }
+                    // 判断是否要启动上传(处于准备好的状态，且不在上传中，且未超过同时上传的最大文件数量)
+                    if (uploadFile.status === UploadStatus.Ready && !this.isUploading(uploadFile.id) && idleCount > 0) {
+                        this.upload(uploadFile);
+                        idleCount = this.maxCount - this.uploadingFiles.length;
                         continue;
                     }
-                    // 判断是否要取消上传
-                    else if (uploadFile.status !== UploadStatus.Uploading && this.isUploading(uploadFile.id)) {
+                    // 如果已经上传成功，且还在上传中，那么删除上传中文件
+                    else if (uploadFile.status === UploadStatus.Success && this.isUploading(uploadFile.id)) {
                         this.removeUploadingFile(uploadFile.id);
-                        if (uploadFile.status === UploadStatus.Success) {
-                            remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
-                        }
+                        remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                         continue;
-                    } else if (uploadFile.status === UploadStatus.Success) {
                     }
                 }
 
@@ -228,13 +231,16 @@ export const useUploadStore = defineStore('uploadStore', {
                     if (ro.result > 0) {
                         uploadFile.status = UploadStatus.Success;
                     } else {
-                        if (ro.result === -3 && ro.code === 'FILE_EXIST') {
+                        if (ro.code === 'FILE_EXIST') {
                             uploadFile.status = UploadStatus.AskOverWrite;
                             // @ts-ignore
                             uploadFile.tempFilePath = ro.extra.tempFilePath;
                             // @ts-ignore
                             uploadFile.dstFilePath = ro.extra.dstFilePath;
                         } else {
+                            if (ro.code === 'INVALID_HASH') {
+                                uploadFile.hash = undefined;
+                            }
                             uploadFile.status = UploadStatus.Fail;
                             uploadFile.error = ro.msg;
                         }
@@ -251,7 +257,13 @@ export const useUploadStore = defineStore('uploadStore', {
          */
         startUpload(uploadFileId: string) {
             let uploadFile = this.getUploadFile(uploadFileId) as UploadFile;
-            uploadFile.status = UploadStatus.Ready;
+            // 如果已经计算好hash，则放入准备好队列，否则放入准备中队列并开始计算hash值
+            if (uploadFile.hash) {
+                uploadFile.status = UploadStatus.Ready;
+            } else {
+                uploadFile.status = UploadStatus.Preparing;
+                this.calcHash();
+            }
         },
         /**
          * 停止上传
