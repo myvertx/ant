@@ -35,7 +35,7 @@ export const fileSvc = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            // timeout: 300000, // 设置超时时间
+            timeout: 0, // 设置超时时间
             url,
             signal: controller.signal,
             data: formData,
