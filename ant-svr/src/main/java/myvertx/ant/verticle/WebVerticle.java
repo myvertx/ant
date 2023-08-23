@@ -167,7 +167,7 @@ public class WebVerticle extends AbstractWebVerticle {
                             response.end(Json.encode(Vro.builder()
                                     .result(ResultDic.FAIL)
                                     .code(ErrorCodeCq.INVALID_HASH)
-                                    .msg("文件校验不正确，请重新传输: " + fileUpload.fileName())
+                                    .msg("文件校验不正确，请重新传输")
                                     .build()));
                             return;
                         }

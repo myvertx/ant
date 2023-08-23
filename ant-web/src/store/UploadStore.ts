@@ -48,7 +48,7 @@ export const useUploadStore = defineStore('uploadStore', {
                 percentSum += loadingFile.percent;
             }
             console.log('percentSum', percentSum);
-            return percentSum / state.uploadingFiles.length;
+            return percentSum / state.uploadFiles.length;
         },
     },
     actions: {
@@ -60,14 +60,13 @@ export const useUploadStore = defineStore('uploadStore', {
             const uploadFile = this.getUploadFile(uploadFileId);
             if (uploadFile) {
                 const hashWorker = new HashWorker();
-                hashWorker.postMessage(uploadFile.file);
                 hashWorker.onmessage = function (e) {
-                    console.log('Received message', e.data);
+                    hashWorker.terminate();
                     const hash = e.data;
                     uploadFile.hash = hash;
                     uploadFile.status = UploadStatus.Ready;
-                    hashWorker.terminate();
                 };
+                hashWorker.postMessage(uploadFile.file);
             }
         },
         /**
@@ -129,9 +128,14 @@ export const useUploadStore = defineStore('uploadStore', {
                         continue;
                     }
                     // 如果已经上传成功，且还在上传中，那么删除上传中文件
-                    else if (uploadFile.status === UploadStatus.Success && this.isUploading(uploadFile.id)) {
+                    else if (
+                        [UploadStatus.Success, UploadStatus.Fail, UploadStatus.AskOverWrite].includes(
+                            uploadFile.status,
+                        ) &&
+                        this.isUploading(uploadFile.id)
+                    ) {
                         this.removeUploadingFile(uploadFile.id);
-                        remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
+                        // remoteStore.refreshColmnByPath(uploadFile.remoteName, uploadFile.dstDir);
                         continue;
                     }
                 }
