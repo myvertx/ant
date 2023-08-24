@@ -87,15 +87,15 @@ const toggleDark = useToggle(useDark());
                                     ----
                                     {{
                                         uploadFile.status === UploadStatus.Uploading
+                                            ? '(' + byteConvert(uploadingFile?.rate || 0) + '/秒)'
+                                            : ''
+                                    }}
+                                    {{
+                                        uploadFile.status === UploadStatus.Uploading
                                             ? byteConvert(uploadingFile?.loaded || 0) + '/'
                                             : ''
                                     }}
                                     {{ byteConvert(uploadFile.size || 0) }}
-                                    {{
-                                        uploadFile.status === UploadStatus.Uploading
-                                            ? '(' + byteConvert(uploadingFile?.rate || 0) + ')'
-                                            : ''
-                                    }}
                                 </span>
                             </div>
                         </div>
