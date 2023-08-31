@@ -17,6 +17,7 @@ import myvertx.ant.ra.FileOverwriteRa;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import myvertx.ant.util.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import rebue.wheel.api.dic.ResultDic;
 import rebue.wheel.vertx.ro.Vro;
@@ -26,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -269,9 +269,7 @@ public class WebVerticle extends AbstractWebVerticle {
         // 临时文件移动成正式文件
         log.debug("remove: {} -> {}", tempFilePath, dstFilePath);
         try {
-            Files.move(tempFilePath,
-                    dstFilePath,
-                    StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tempFilePath, dstFilePath);
             return true;
         } catch (NoSuchFileException e) {
             String msg = "上传的临时文件已被删除";

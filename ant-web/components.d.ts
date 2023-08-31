@@ -7,7 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    CircleFileIcon: typeof import('./src/assets/icon/CircleFileIcon.vue')['default']
     DisableStartIcon: typeof import('./src/assets/icon/DisableStartIcon.vue')['default']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElPopconfirm: typeof import('element-plus/es')['ElPopconfirm']
@@ -21,7 +20,6 @@ declare module '@vue/runtime-core' {
     Favorite: typeof import('./src/view/Favorite.vue')['default']
     Header: typeof import('./src/view/Header.vue')['default']
     Info: typeof import('./src/view/Info.vue')['default']
-    RenameFileIcon: typeof import('./src/assets/icon/RenameFileIcon.vue')['default']
     SelectList: typeof import('./src/component/SelectList.vue')['default']
     Splitter: typeof import('./src/component/Splitter.vue')['default']
     UploadFile: typeof import('./src/component/UploadFile.vue')['default']
