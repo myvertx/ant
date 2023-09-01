@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>myvertx.ant</groupId>
     <artifactId>ant-svr</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <description>管理服务器资源的web应用</description>
 
     <properties>
@@ -11,7 +11,7 @@
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
 
-        <wheel.version>2.1.7</wheel.version>
+        <wheel.version>2.1.8</wheel.version>
     </properties>
 
     <dependencyManagement>

@@ -17,8 +17,8 @@ import myvertx.ant.ra.FileOverwriteRa;
 import myvertx.ant.ra.PathRa;
 import myvertx.ant.ra.UploadRa;
 import myvertx.ant.util.DigestUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import rebue.wheel.api.dic.ResultDic;
 import rebue.wheel.vertx.ro.Vro;
 import rebue.wheel.vertx.verticle.AbstractWebVerticle;
@@ -161,21 +161,24 @@ public class WebVerticle extends AbstractWebVerticle {
 
                     // 临时文件路径
                     Path tempFilePath = Path.of(fileUpload.uploadedFileName());
-                    // 检测hash是否正确
-                    try {
-                        String correctHash = DigestUtils.hash(tempFilePath);
-                        log.debug("正确的hash是: {}", correctHash);
-                        if (!correctHash.equalsIgnoreCase(hash)) {
-                            response.end(Json.encode(Vro.builder()
-                                    .result(ResultDic.FAIL)
-                                    .code(ErrorCodeCq.INVALID_HASH)
-                                    .msg("文件校验不正确，请重新传输")
-                                    .build()));
+
+                    if (StringUtils.isNotBlank(hash)) {
+                        // 检测hash是否正确
+                        try {
+                            String correctHash = DigestUtils.hash(tempFilePath);
+                            log.debug("正确的hash是: {}", correctHash);
+                            if (!correctHash.equalsIgnoreCase(hash)) {
+                                response.end(Json.encode(Vro.builder()
+                                        .result(ResultDic.FAIL)
+                                        .code(ErrorCodeCq.INVALID_HASH)
+                                        .msg("文件校验不正确，请重新传输")
+                                        .build()));
+                                return;
+                            }
+                        } catch (IOException e) {
+                            response.end(Json.encode(Vro.fail("读取临时文件出错: " + fileUpload.fileName())));
                             return;
                         }
-                    } catch (IOException e) {
-                        response.end(Json.encode(Vro.fail("读取临时文件出错: " + fileUpload.fileName())));
-                        return;
                     }
 
                     // 目的地目录
