@@ -74,7 +74,7 @@ function onSelect(file: FileMo, fileIndex: number) {
             }"
             :style="{ flexBasis: getPathColumnWidth(column.path) }"
             v-contextmenu:contextmenu
-            @mouseup.native="setCurColumnIndex(columnIndex)"
+            @mousedown.native="setCurColumnIndex(columnIndex)"
         >
             <SelectList
                 :isActived="curColumnIndex == columnIndex"
